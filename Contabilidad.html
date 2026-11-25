@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tributum - Módulo de Contabilidad Integrado</title>
+    
+    <!-- FontAwesome Font for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- VARIABLES DE COLOR Y MODO OSCURO --- */
+        :root {
+            --bg-main: #f8fafc;
+            --sidebar-color: #222d32;
+            --purple-primary: #605ca8;
+            --purple-hover: #4a478a;
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --success-color: #10b981; 
+            --info-color: #3b82f6;    
+            --card-border: #e2e8f0;
+            --card-bg: #ffffff;
+            --input-bg: #ffffff;
+            --table-header-bg: #f8fafc;
+            --table-row-border: #f1f5f9;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+        }
+
+        body.dark-mode {
+            --bg-main: #0f172a;
+            --sidebar-color: #1e293b;
+            --purple-primary: #818cf8;
+            --purple-hover: #6366f1;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --card-border: #334155;
+            --card-bg: #1e293b;
+            --input-bg: #0f172a;
+            --table-header-bg: #0f172a;
+            --table-row-border: #334155;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Segoe UI', Helvetica, Arial, sans-serif; }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-y: auto;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .app-container { display: flex; min-height: 100vh; flex-direction: row; }
+
+        /* --- SIDEBAR LATERAL --- */
+        .sidebar {
+            width: 230px;
+            background-color: var(--sidebar-color);
+            color: #b8c7ce;
+            font-size: 14px;
+            position: fixed;
+            top: 0; left: 0; height: 100vh;
+            overflow-y: auto;
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+
+        .menu-list { list-style: none; padding: 15px 0; }
+        .menu-item { border-left: 3px solid transparent; }
+        
+        .menu-link {
+            display: flex; justify-content: space-between; align-items: center;
+            color: #b8c7ce; text-decoration: none; padding: 12px 15px; cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .menu-link:hover { color: #fff; background-color: rgba(255, 255, 255, 0.05); }
+
+        .menu-item.active { border-left: 3px solid var(--purple-primary); }
+        .menu-item.active > .menu-link { color: #fff; background-color: rgba(255, 255, 255, 0.08); }
+
+        .link-content { display: flex; align-items: center; gap: 10px; }
+        .arrow-icon { font-size: 10px; color: #777; transition: transform 0.2s; }
+        .menu-item.open > .menu-link .arrow-icon { transform: rotate(180deg); }
+
+        .submenu { list-style: none; background-color: rgba(0, 0, 0, 0.2); display: none; }
+        .submenu.open { display: block; }
+        .submenu li a {
+            display: flex; justify-content: space-between; align-items: center;
+            color: #8aa4af; text-decoration: none; padding: 10px 15px 10px 25px;
+            cursor: pointer; transition: color 0.2s, background 0.2s;
+        }
+        .submenu li a:hover { color: #fff; background-color: rgba(255, 255, 255, 0.05); }
+        .submenu li.active-parent > a { color: #fff; background-color: rgba(255, 255, 255, 0.08); }
+
+        /* --- CONTENIDO PRINCIPAL --- */
+        .main-content {
+            flex-grow: 1; margin-left: 230px; display: flex; flex-direction: column;
+            min-height: 100vh; width: calc(100% - 230px); transition: all 0.3s ease;
+        }
+
+        .top-bar {
+            height: 50px; background-color: var(--purple-primary); display: flex;
+            align-items: center; justify-content: space-between; padding: 0 20px; transition: background-color 0.3s;
+        }
+
+        .settings-icon { color: white; font-size: 20px; cursor: pointer; }
+        .top-bar-right { display: flex; align-items: center; gap: 15px; color: white; font-size: 14px; }
+
+        .btn-theme-toggle {
+            background: rgba(255, 255, 255, 0.2); border: none; color: white;
+            padding: 5px 12px; border-radius: 20px; cursor: pointer; font-size: 12px;
+            display: flex; align-items: center; gap: 6px; transition: background 0.2s;
+        }
+        .btn-theme-toggle:hover { background: rgba(255, 255, 255, 0.3); }
+        .btn-toggle-menu { display: none; background: none; border: none; color: white; font-size: 18px; cursor: pointer; }
+
+        .content-body { padding: 20px; flex-grow: 1; width: 100%; }
+        .page-title { font-size: 24px; font-weight: 600; margin-bottom: 6px; color: var(--text-main); }
+        .page-subtitle { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; }
+
+        .view-section { display: none; width: 100%; }
+        .view-section.active { display: block; }
+
+        /* --- COMPONENTES Y FORMULARIOS --- */
+        .form-group { margin-bottom: 15px; width: 100%; }
+        .form-group label { display: block; font-weight: 500; margin-bottom: 6px; color: var(--text-main); font-size: 13px; }
+
+        .custom-select, .custom-input, .custom-textarea {
+            width: 100%; padding: 9.5px 12px; font-size: 13px; color: var(--text-main);
+            background-color: var(--input-bg); border: 1px solid var(--card-border);
+            border-radius: 8px; outline: none; transition: all 0.2s;
+        }
+        .custom-select:focus, .custom-input:focus, .custom-textarea:focus {
+            border-color: var(--purple-primary); box-shadow: 0 0 0 3px rgba(96, 92, 168, 0.15);
+        }
+
+        .radio-group-box {
+            background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px;
+            padding: 8px 12px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap; min-height: 38px;
+        }
+        .radio-item, .checkbox-inline-label { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-main); cursor: pointer; }
+
+        .filter-bar {
+            background: var(--bg-main); border: 1px solid var(--card-border); border-radius: 10px;
+            padding: 15px; margin-bottom: 20px; display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; align-items: end;
+        }
+
+        .card-generic {
+            background: var(--card-bg); border-radius: 12px; padding: 25px 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02); border: 1px solid var(--card-border); width: 100%;
+        }
+
+        .form-section-block {
+            background: var(--bg-main); border: 1px solid var(--card-border); border-radius: 10px;
+            padding: 15px; margin-top: 15px; margin-bottom: 15px;
+        }
+
+        .form-section-title {
+            font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+            color: var(--purple-primary); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+        }
+
+        .btn-primary {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            background-color: var(--purple-primary); color: white; border: none; padding: 10px 22px;
+            font-size: 13px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: background 0.2s;
+        }
+        .btn-primary:hover { background-color: var(--purple-hover); }
+
+        .btn-secondary { background-color: #e2e8f0; color: #475569; border: none; padding: 10px 20px; font-size: 13px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .btn-success { background-color: var(--success-color); color: white; border: none; padding: 10px 20px; font-size: 13px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+
+        .btn-action-tbl {
+            background: none; border: none; color: var(--purple-primary); cursor: pointer;
+            padding: 4px 6px; font-size: 12px; border-radius: 4px; transition: background 0.2s; display: inline-flex; align-items: center; gap: 4px;
+        }
+        .btn-action-tbl:hover { background: rgba(96, 92, 168, 0.15); }
+
+        .btn-sm-icon {
+            background: rgba(96, 92, 168, 0.1); color: var(--purple-primary); border: 1px solid var(--card-border);
+            padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600;
+            display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+        }
+
+        .nombre-padre { font-weight: 700; color: var(--text-main); }
+        .nombre-hijo { font-weight: 400; color: var(--text-main); }
+
+        /* SWITCH */
+        .switch-container { display: inline-flex; align-items: center; gap: 8px; }
+        .switch { position: relative; display: inline-block; width: 40px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .3s; border-radius: 22px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--purple-primary); }
+        input:checked + .slider:before { transform: translateX(18px); }
+        .row-inactiva { opacity: 0.55; background-color: rgba(0,0,0,0.02); }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 999; padding: 15px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-card {
+            background: var(--card-bg); border-radius: 12px; width: 100%; max-width: 650px; padding: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); border: 1px solid var(--card-border); max-height: 90vh; overflow-y: auto;
+        }
+        .modal-card-lg { max-width: 950px; }
+
+        .table-responsive { overflow-x: auto; width: 100%; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 650px; }
+        .data-table th, .data-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--table-row-border); }
+        .data-table th { background-color: var(--table-header-bg); color: var(--text-muted); font-weight: 600; }
+
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; }
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-info { background: #e0f2fe; color: #0369a1; }
+        .badge-dark { background: #f1f5f9; color: #475569; }
+
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast-item { min-width: 260px; padding: 14px 18px; border-radius: 8px; background: #ffffff; color: #333; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; font-size: 13px; font-weight: 500; border-left: 5px solid var(--purple-primary); }
+
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.mobile-open { transform: translateX(0); }
+            .main-content { margin-left: 0; width: 100%; }
+            .btn-toggle-menu { display: block; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="toast-container"></div>
+
+    <!-- 1. MODAL CUENTA CONTABLE -->
+    <div class="modal-overlay" id="modal-cuenta-contable">
+        <div class="modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="font-size: 16px; color: var(--purple-primary);" id="modal-cta-title"><i class="fa-solid fa-sitemap"></i> Ficha de Cuenta Contable</h3>
+                <button onclick="closeModalCuenta()" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--text-muted);">&times;</button>
+            </div>
+
+            <form id="form-cuenta-modal" onsubmit="guardarCuentaModal(event)">
+                <input type="hidden" id="modal-cta-id" value="-1">
+
+                <div class="form-group" id="container-clasificacion-jerarquica">
+                    <label>Clasificación Jerárquica:</label>
+                    <div class="radio-group-box">
+                        <label class="radio-item"><input type="radio" name="modal-tipo-jerarquia" value="padre" checked onchange="evaluarTipoJerarquiaModal()"> Cuenta Padre (Raíz)</label>
+                        <label class="radio-item"><input type="radio" name="modal-tipo-jerarquia" value="hijo" onchange="evaluarTipoJerarquiaModal()"> Cuenta Hijo (Subcuenta)</label>
+                    </div>
+                </div>
+
+                <div class="form-group" id="container-cuenta-padre-modal" style="display: none;">
+                    <label>Seleccionar Cuenta Padre:</label>
+                    <select class="custom-select" id="modal-padre-select" onchange="generarCorrelativoHijoModal()">
+                        <option value="">-- Seleccione Cuenta Padre --</option>
+                    </select>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 10px;">
+                    <div class="form-group">
+                        <label>Número / Código:</label>
+                        <input type="text" id="modal-codigo" class="custom-input" placeholder="Ej. 1.1.02.001" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Nombre de la Cuenta:</label>
+                        <input type="text" id="modal-nombre" class="custom-input" placeholder="Ej. Banco G&T 63-0002028-9 Q." required>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
+                    <div class="form-group">
+                        <label>Tipo de Cuenta:</label>
+                        <div style="display: flex; gap: 6px;">
+                            <select class="custom-select" id="modal-tipo-select" required>
+                                <option value="Activo">Activo</option>
+                                <option value="Pasivo">Pasivo</option>
+                                <option value="Patrimonio">Patrimonio</option>
+                                <option value="Ingreso">Ingreso</option>
+                                <option value="Gasto">Gasto</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Centros de Costo:</label>
+                        <select class="custom-select" id="modal-cc-select">
+                            <option value="Usa Centro Costo">Usa Centro Costo</option>
+                            <option value="No usa CC">No usa CC</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline-label"><input type="checkbox" id="modal-permite-movimiento" checked> Acepta movimientos / asientos directos</label>
+                </div>
+
+                <div class="form-section-block">
+                    <div class="form-section-title"><i class="fa-solid fa-user-lock"></i> Restringir uso a módulos</div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; font-size: 12px; margin-bottom: 10px;">
+                        <label class="checkbox-inline-label"><input type="checkbox" class="chk-mod-restriccion-modal" value="Bancos"> Bancos</label>
+                        <label class="checkbox-inline-label"><input type="checkbox" class="chk-mod-restriccion-modal" value="Contabilidad"> Contabilidad</label>
+                        <label class="checkbox-inline-label"><input type="checkbox" class="chk-mod-restriccion-modal" value="CxP"> CxP</label>
+                        <label class="checkbox-inline-label"><input type="checkbox" class="chk-mod-restriccion-modal" value="Planilla"> Planilla</label>
+                        <label class="checkbox-inline-label"><input type="checkbox" class="chk-mod-restriccion-modal" value="CajaChica"> Caja Chica</label>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label style="font-size:11px;">Observaciones:</label>
+                        <input type="text" id="modal-restriccion-obs" class="custom-input" placeholder="Justificación..." style="font-size:12px;">
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                    <button type="button" class="btn-secondary" onclick="closeModalCuenta()">Cancelar</button>
+                    <button type="submit" class="btn-primary" id="btn-modal-submit"><i class="fa-solid fa-save"></i> Guardar Cuenta</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. MODAL CREAR / EDITAR CENTRO DE COSTO -->
+    <div class="modal-overlay" id="modal-centro-costo">
+        <div class="modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="font-size: 16px; color: var(--purple-primary);" id="modal-cc-title"><i class="fa-solid fa-diagram-project"></i> Editar Centro de Costo</h3>
+                <button onclick="closeModalCentro()" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--text-muted);">&times;</button>
+            </div>
+
+            <form id="form-centro-modal" onsubmit="guardarCentroModal(event)">
+                <input type="hidden" id="modal-cc-id" value="-1">
+
+                <div class="form-group" id="container-cc-tipo-jerarquia">
+                    <label>Tipo de Jerarquía:</label>
+                    <div style="display:flex; gap:15px; background:var(--bg-main); padding:8px 12px; border-radius:8px; border:1px solid var(--card-border);">
+                        <label style="font-size:13px; cursor:pointer;"><input type="radio" name="cc-jerarquia" value="padre" checked onchange="evaluarJerarquiaCentro()"> Centro Padre / Nivel Superior</label>
+                        <label style="font-size:13px; cursor:pointer;"><input type="radio" name="cc-jerarquia" value="hijo" onchange="evaluarJerarquiaCentro()"> Subcentro / Operativo</label>
+                    </div>
+                </div>
+
+                <div class="form-group" id="container-select-cc-padre" style="display:none;">
+                    <label>Seleccionar Centro Padre:</label>
+                    <select class="custom-select" id="modal-cc-padre-select" onchange="generarCodigoCentroHijo()">
+                        <option value="">-- Seleccione Centro Padre --</option>
+                    </select>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 10px;">
+                    <div class="form-group">
+                        <label>Código / Identificador:</label>
+                        <input type="text" id="modal-cc-codigo" class="custom-input" placeholder="Ej. CC-100" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Nombre del Centro de Costo:</label>
+                        <input type="text" id="modal-cc-nombre" class="custom-input" placeholder="Ej. Dirección y Administración" required>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="form-group">
+                        <label>Categoría (Interno / Externo):</label>
+                        <select class="custom-select" id="modal-cc-categoria">
+                            <option value="Interno">Interno</option>
+                            <option value="Externo">Externo (IGER)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Nivel Jerárquico:</label>
+                        <select class="custom-select" id="modal-cc-nivel" disabled>
+                            <option value="1">Nivel 1 (Principal)</option>
+                            <option value="2">Nivel 2 (Área)</option>
+                            <option value="3">Nivel 3 (Proyecto/Detalle)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-section-block">
+                    <div class="form-section-title"><i class="fa-solid fa-link"></i> Vincular con Cuenta Contable (Lista Blanca)</div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label style="font-size:12px;">Cuenta Contable Asociada:</label>
+                        <select class="custom-select" id="modal-cc-cuenta-vinculada">
+                            <option value="">-- Sin Vincular (Opcional) --</option>
+                            <option value="5.1.01.001">5.1.01.001 - Papelería y Utiles de Oficina</option>
+                            <option value="5.1.01.005">5.1.01.005 - Combustibles y Lubricantes</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                    <button type="button" class="btn-secondary" onclick="closeModalCentro()">Cancelar</button>
+                    <button type="submit" class="btn-primary" id="btn-cc-submit"><i class="fa-solid fa-save"></i> Guardar Centro</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 3. MODAL PARTIDA CONTABLE (CENTRO DE COSTO A NIVEL DE CABECERA/PARTIDA GENERAL) -->
+    <div class="modal-overlay" id="modal-partida-contable">
+        <div class="modal-card modal-card-lg">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="font-size: 16px; color: var(--purple-primary);" id="modal-poliza-title"><i class="fa-solid fa-file-invoice"></i> Mantenimiento de Partida / Póliza Contable</h3>
+                <button onclick="closeModalPoliza()" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--text-muted);">&times;</button>
+            </div>
+
+            <form id="form-poliza-modal" onsubmit="guardarPolizaModal(event)">
+                <input type="hidden" id="modal-pol-id" value="-1">
+
+                <div class="form-section-block" style="margin-top:0;">
+                    <div style="display: grid; grid-template-columns: 1fr 1.5fr 1.5fr; gap: 12px; margin-bottom:12px;">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label>Fecha:</label>
+                            <input type="date" id="modal-pol-fecha" class="custom-input" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label>Referencia / No. Correlativo:</label>
+                            <input type="text" id="modal-pol-numero" class="custom-input" placeholder="POL-2026-0090" required>
+                        </div>
+                        <!-- SELECTOR DE CENTRO DE COSTO A NIVEL DE CABECERA/PARTIDA -->
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label style="font-weight:700; color:var(--purple-primary);"><i class="fa-solid fa-diagram-project"></i> Centro de Costo (A nivel Partida):</label>
+                            <select class="custom-select" id="modal-pol-centro-costo" required>
+                                <option value="">Seleccione Uno</option>
+                                <option value="CC-100">CC-100 - Dirección y Administración</option>
+                                <option value="CC-101">CC-101 - Gerencia General</option>
+                                <option value="CC-102">CC-102 - Operaciones y Campo</option>
+                                <option value="CC-200">CC-200 - Proyectos Especiales (IGER)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label>Descripción / Glosa General:</label>
+                        <textarea id="modal-pol-glosa" class="custom-textarea" rows="2" placeholder="Ingrese el concepto general de la partida..." required></textarea>
+                    </div>
+                </div>
+
+                <div class="form-section-title"><i class="fa-solid fa-list-ol"></i> Cuentas y Asiento Contable</div>
+
+                <div class="table-responsive" style="margin-bottom: 15px;">
+                    <table class="data-table" id="tabla-lineas-poliza">
+                        <thead>
+                            <tr>
+                                <th style="width: 45%;">Cuenta Contable</th>
+                                <th style="width: 25%;">Auxiliar / Concepto</th>
+                                <th style="width: 130px; text-align: right;">Debe (Q)</th>
+                                <th style="width: 130px; text-align: right;">Haber (Q)</th>
+                                <th style="width: 40px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="lineas-poliza-body">
+                            <!-- Dynamic Rows -->
+                        </tbody>
+                        <tfoot>
+                            <tr style="font-weight: 700; background: var(--table-header-bg);">
+                                <td colspan="2" style="text-align: right;">SUMAS IGUALES:</td>
+                                <td style="text-align: right; color:var(--purple-primary);" id="total-poliza-debe">Q 0.00</td>
+                                <td style="text-align: right; color:var(--purple-primary);" id="total-poliza-haber">Q 0.00</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td colspan="5" style="text-align: right;" id="status-cuadre-poliza">
+                                    <span class="badge badge-success"><i class="fa-solid fa-check"></i> Partida Cuadrada</span>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <button type="button" class="btn-sm-icon" onclick="agregarFilaPoliza()"><i class="fa-solid fa-plus"></i> Agregar Línea de Movimiento</button>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                    <button type="button" class="btn-secondary" onclick="closeModalPoliza()">Cancelar</button>
+                    <button type="submit" class="btn-primary" id="btn-guardar-poliza"><i class="fa-solid fa-save"></i> Guardar Partida</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 4. MODAL CARGA MASIVA EXCEL CENTROS -->
+    <div class="modal-overlay" id="modal-carga-masiva-cc">
+        <div class="modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="font-size: 16px; color: var(--purple-primary);"><i class="fa-solid fa-file-excel"></i> Carga Masiva de Centros de Costo</h3>
+                <button onclick="closeModalCargaMasiva()" style="background:none; border:none; font-size:18px; cursor:pointer; color:var(--text-muted);">&times;</button>
+            </div>
+            <div style="font-size:12px; color:var(--text-muted); margin-bottom:15px; line-height:1.5;">
+                Sube tu archivo estructurado de centros de costo.
+            </div>
+            <div class="form-group">
+                <input type="file" id="file-masiva-cc" class="custom-input" accept=".csv, .xlsx">
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                <button type="button" class="btn-secondary" onclick="closeModalCargaMasiva()">Cancelar</button>
+                <button type="button" class="btn-success" onclick="procesarCargaMasiva()"><i class="fa-solid fa-upload"></i> Importar Centros</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        
+        <!-- SIDEBAR DE NAVEGACIÓN -->
+        <aside class="sidebar" id="sidebar">
+            <ul class="menu-list">
+                <!-- CONTABILIDAD -->
+                <li class="menu-item open active" id="menu-contabilidad">
+                    <a class="menu-link" onclick="toggleSubmenu('sub-contabilidad', 'menu-contabilidad')">
+                        <span class="link-content"><i class="fa-solid fa-calculator"></i> Contabilidad</span>
+                        <i class="fa-solid fa-chevron-down arrow-icon"></i>
+                    </a>
+                    <ul class="submenu open" id="sub-contabilidad">
+                        <li id="link-catalogo-cuentas">
+                            <a onclick="showView('view-catalogo-cuentas', 'link-catalogo-cuentas')">
+                                <span><i class="fa-regular fa-circle"></i> Catálogo de cuentas</span>
+                            </a>
+                        </li>
+                        <li id="link-mantenimiento-partidas" class="active-parent">
+                            <a onclick="showView('view-mantenimiento-partidas', 'link-mantenimiento-partidas')">
+                                <span><i class="fa-regular fa-circle"></i> Mantenimiento de Partidas</span>
+                            </a>
+                        </li>
+                        <li id="link-centros-costo">
+                            <a onclick="showView('view-centros-costo', 'link-centros-costo')">
+                                <span><i class="fa-regular fa-circle"></i> Gestión de Centros de Costo</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <button class="btn-toggle-menu" onclick="toggleMobileMenu()"><i class="fa-solid fa-bars"></i></button>
+                    <i class="fa-solid fa-gear settings-icon" title="Configuración"></i>
+                </div>
+                <div class="top-bar-right">
+                    <button class="btn-theme-toggle" onclick="toggleDarkMode()"><i class="fa-solid fa-moon"></i> Modo Oscuro</button>
+                    <span><i class="fa-solid fa-user"></i> Homeland</span>
+                </div>
+            </header>
+            
+            <div class="content-body">
+                
+                <!-- 1. VISTA: NOMENCLATURA / CATÁLOGO DE CUENTAS COMPLETO -->
+                <div id="view-catalogo-cuentas" class="view-section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <h2 class="page-title">Catálogo y Nomenclatura Contable</h2>
+                            <p class="page-subtitle" style="margin-bottom:0;">Estructura general del plan de cuentas, tipos y restricciones de uso.</p>
+                        </div>
+                        <button class="btn-primary" onclick="abrirModalCrearCuenta()"><i class="fa-solid fa-plus-circle"></i> Nueva Cuenta Contable</button>
+                    </div>
+
+                    <div class="card-generic">
+                        <div class="filter-bar" style="margin-bottom: 20px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label style="font-size:12px;"><i class="fa-solid fa-magnifying-glass"></i> Buscar por Código/Nombre:</label>
+                                <input type="text" id="buscar-cuenta-input" class="custom-input" placeholder="Ej. Banco, 1.1.02..." onkeyup="filtrarTablaCatalogo()">
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label style="font-size:12px;"><i class="fa-solid fa-folder"></i> Filtrar Cuenta Padre:</label>
+                                <select class="custom-select" id="filtro-padre-legacy" onchange="filtrarTablaCatalogo()">
+                                    <option value="">Todas las cuentas</option>
+                                    <option value="1">1 - activo (D)</option>
+                                    <option value="291">1.1 - activo corriente (D)</option>
+                                    <option value="295">1.1.02 - Bancos (D)</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label style="font-size:12px;"><i class="fa-solid fa-layer-group"></i> Niveles a mostrar:</label>
+                                <input type="number" class="custom-input" value="4">
+                            </div>
+                            <div style="display: flex; gap: 8px; align-items: flex-end;">
+                                <button class="btn-secondary" onclick="window.print()"><i class="fa-solid fa-print"></i> Imprimir</button>
+                                <button class="btn-success" onclick="showToast('Descargando Nomenclatura...', 'info')"><i class="fa-solid fa-download"></i> Descargar</button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Correlativo</th>
+                                        <th>Código</th>
+                                        <th>Nombre de Cuenta</th>
+                                        <th>Tipo</th>
+                                        <th>Es Padre</th>
+                                        <th>Hijo de</th>
+                                        <th>Centros Costo</th>
+                                        <th style="text-align: center;">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-catalogo-body">
+                                    <!-- Dynamic Rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. VISTA: MANTENIMIENTO Y BÚSQUEDA DE PARTIDAS -->
+                <div id="view-mantenimiento-partidas" class="view-section active">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <h2 class="page-title">Mantenimiento de Partidas</h2>
+                            <p class="page-subtitle" style="margin-bottom:0;">Búsqueda, creación, edición y asignación de Centro de Costo por partida no cerrada.</p>
+                        </div>
+                        <button class="btn-primary" onclick="abrirModalCrearPoliza()"><i class="fa-solid fa-plus-circle"></i> Nueva Partida</button>
+                    </div>
+
+                    <div class="card-generic">
+                        <div class="filter-bar" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label style="font-size:12px;"><i class="fa-solid fa-magnifying-glass"></i> Referencia / Descripción:</label>
+                                <input type="text" id="buscar-poliza-input" class="custom-input" placeholder="Ej. POL-2026-0089, Compra..." onkeyup="filtrarPartidasContables()">
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label style="font-size:12px;"><i class="fa-solid fa-diagram-project"></i> Filtrar por Centro de Costo:</label>
+                                <select class="custom-select" id="filtro-poliza-cc" onchange="filtrarPartidasContables()">
+                                    <option value="">-- Todos los Centros --</option>
+                                    <option value="CC-100">CC-100 - Dirección y Admin</option>
+                                    <option value="CC-101">CC-101 - Gerencia General</option>
+                                    <option value="CC-102">CC-102 - Operaciones y Campo</option>
+                                    <option value="SIN_CC">Sin Centro Asignado</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label style="font-size:12px;">Fecha Desde:</label>
+                                <input type="date" id="filtro-poliza-desde" class="custom-input" value="2026-09-01" onchange="filtrarPartidasContables()">
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label style="font-size:12px;">Fecha Hasta:</label>
+                                <input type="date" id="filtro-poliza-hasta" class="custom-input" value="2026-09-30" onchange="filtrarPartidasContables()">
+                            </div>
+                            <div style="display: flex; gap: 8px; align-items: flex-end;">
+                                <button class="btn-secondary" onclick="window.print()"><i class="fa-solid fa-print"></i> Imprimir</button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Referencia</th>
+                                        <th>Fecha</th>
+                                        <th>Centro de Costo Asignado</th>
+                                        <th>Descripción / Glosa</th>
+                                        <th style="text-align:right;">Monto Debe</th>
+                                        <th style="text-align:right;">Monto Haber</th>
+                                        <th style="text-align: center;">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-partidas-body">
+                                    <!-- Dynamic Rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. VISTA: GESTIÓN DE CENTROS DE COSTO -->
+                <div id="view-centros-costo" class="view-section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <h2 class="page-title">Gestión de Centros de Costo</h2>
+                            <p class="page-subtitle" style="margin-bottom:0;">Estructura jerárquica de centros, vinculación con cuentas contables y reglas de distribución.</p>
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn-secondary" onclick="openModalCargaMasiva()"><i class="fa-solid fa-file-import"></i> Carga Masiva Excel</button>
+                            <button class="btn-primary" onclick="abrirModalCrearCentro()"><i class="fa-solid fa-plus-circle"></i> Nuevo Centro de Costo</button>
+                        </div>
+                    </div>
+
+                    <div class="card-generic">
+                        <div class="filter-bar" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label style="font-size:12px;"><i class="fa-solid fa-magnifying-glass"></i> Buscar por Código / Nombre:</label>
+                                <input type="text" id="buscar-cc-input" class="custom-input" placeholder="Ej. Administración, CC-100..." onkeyup="filtrarCentrosCosto()">
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label style="font-size:12px;"><i class="fa-solid fa-layer-group"></i> Categoría:</label>
+                                <select class="custom-select" id="filtro-cc-cat" onchange="filtrarCentrosCosto()">
+                                    <option value="">Todas</option>
+                                    <option value="Interno">Interno</option>
+                                    <option value="Externo">Externo (IGER)</option>
+                                </select>
+                            </div>
+                            <div style="display: flex; gap: 8px; align-items: flex-end;">
+                                <button class="btn-secondary" onclick="window.print()"><i class="fa-solid fa-print"></i> Imprimir</button>
+                                <button class="btn-success" onclick="showToast('Exportando estructura de Centros...', 'info')"><i class="fa-solid fa-download"></i> Descargar</button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Nombre del Centro de Costo</th>
+                                        <th>Categoría</th>
+                                        <th>Es Padre</th>
+                                        <th>Hijo de</th>
+                                        <th>Estado Movimientos</th>
+                                        <th style="text-align: center;">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-centros-body">
+                                    <!-- Dynamic Rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- SCRIPT JAVASCRIPT INTEGRADO -->
+    <script>
+        /* DATOS CATÁLOGO DE CUENTAS */
+        let catalogoCuentasArray = [
+            { id: 290, correlativo: "290", codigo: "1", nombre: "activo (D)", tipo: "(D)", esPadre: true, hijoDe: "0", usaCC: "Usa Centro Costo", nivel: 1, activo: true, padreId: null, restricciones: [], obs: "" },
+            { id: 291, correlativo: "291", codigo: "1.1", nombre: "activo corriente (D)", tipo: "(D)", esPadre: true, hijoDe: "290", usaCC: "Usa Centro Costo", nivel: 2, activo: true, padreId: 290, restricciones: [], obs: "" },
+            { id: 292, correlativo: "292", codigo: "1.1.01", nombre: "Caja (D)", tipo: "(D)", esPadre: true, hijoDe: "291", usaCC: "Usa Centro Costo", nivel: 3, activo: true, padreId: 291, restricciones: [], obs: "" },
+            { id: 293, correlativo: "293", codigo: "1.1.01.001", nombre: "Caja chica administracion (D)", tipo: "(D)", esPadre: false, hijoDe: "292", usaCC: "Usa Centro Costo", nivel: 4, activo: true, padreId: 292, restricciones: ["CajaChica"], obs: "" },
+            { id: 294, correlativo: "294", codigo: "1.1.01.002", nombre: "Caja chica operacion (D)", tipo: "(D)", esPadre: false, hijoDe: "292", usaCC: "Usa Centro Costo", nivel: 4, activo: true, padreId: 292, restricciones: ["CajaChica"], obs: "" },
+            { id: 295, correlativo: "295", codigo: "1.1.02", nombre: "Bancos (D)", tipo: "(D)", esPadre: true, hijoDe: "291", usaCC: "Usa Centro Costo", nivel: 3, activo: true, padreId: 291, restricciones: [], obs: "" },
+            { id: 296, correlativo: "296", codigo: "1.1.02.001", nombre: "Banco G&T 63-0002028-9 Q. (D)", tipo: "(D)", esPadre: false, hijoDe: "295", usaCC: "Usa Centro Costo", nivel: 4, activo: true, padreId: 295, restricciones: ["Bancos"], obs: "Cuenta principal" },
+            { id: 297, correlativo: "297", codigo: "1.1.02.002", nombre: "Banco G&T 66-5806679-7 $. (D)", tipo: "(D)", esPadre: false, hijoDe: "295", usaCC: "Usa Centro Costo", nivel: 4, activo: true, padreId: 295, restricciones: ["Bancos"], obs: "Cuenta dolares" }
+        ];
+
+        /* DATOS CENTROS DE COSTO */
+        let centrosCostoArray = [
+            { id: 1, codigo: "CC-100", nombre: "DIRECCIÓN Y ADMINISTRACIÓN", categoria: "Interno", esPadre: true, hijoDe: "0", nivel: 1, tieneMovimientos: true, cuentaVinculada: "" },
+            { id: 2, codigo: "CC-101", nombre: "Gerencia General", categoria: "Interno", esPadre: false, hijoDe: "CC-100", nivel: 2, tieneMovimientos: false, cuentaVinculada: "5.1.01.001" },
+            { id: 3, codigo: "CC-102", nombre: "Operaciones y Campo", categoria: "Interno", esPadre: false, hijoDe: "CC-100", nivel: 2, tieneMovimientos: false, cuentaVinculada: "5.1.01.005" },
+            { id: 4, codigo: "CC-200", nombre: "PROYECTOS ESPECIALES (IGER)", categoria: "Externo", esPadre: true, hijoDe: "0", nivel: 1, tieneMovimientos: true, cuentaVinculada: "" }
+        ];
+
+        /* DATOS PARTIDAS CONTABLES (CENTRO DE COSTO A NIVEL DE PARTIDA COMPLETA) */
+        let partidasContablesArray = [
+            {
+                id: 101, numero: "POL-2026-0089", fecha: "2026-10-22", centroCostoCodigo: "CC-101", glosa: "Pago de suministros de papelería e insumos varios",
+                montoDebe: 1250.00, montoHaber: 1250.00,
+                lineas: [
+                    { cuentaCodigo: "5.1.01.001", auxiliar: "Factura F-990 Papelería", debe: 1250.00, haber: 0.00 },
+                    { cuentaCodigo: "1.1.02.001", auxiliar: "Cheque 1022 G&T", debe: 0.00, haber: 1250.00 }
+                ]
+            },
+            {
+                id: 102, numero: "POL-2026-0090", fecha: "2026-10-22", centroCostoCodigo: "CC-102", glosa: "Mantenimiento preventivo de vehículos de campo",
+                montoDebe: 850.00, montoHaber: 850.00,
+                lineas: [
+                    { cuentaCodigo: "5.1.01.005", auxiliar: "Mantenimiento Pick-up", debe: 850.00, haber: 0.00 },
+                    { cuentaCodigo: "1.1.02.001", auxiliar: "Transferencia bancaria", debe: 0.00, haber: 850.00 }
+                ]
+            }
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderizarCatalogoCuentas();
+            sincronizarSelectCuentasPadreModal();
+            renderizarCentrosCosto();
+            sincronizarSelectPadresCentros();
+            renderizarPartidasContables();
+        });
+
+        function toggleMobileMenu() { document.getElementById('sidebar').classList.toggle('mobile-open'); }
+        function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
+
+        function toggleSubmenu(submenuId, parentMenuId) {
+            document.getElementById(submenuId).classList.toggle('open');
+            document.getElementById(parentMenuId).classList.toggle('open');
+        }
+
+        function showView(viewId, activeLinkId) {
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.submenu li').forEach(l => l.classList.remove('active-parent'));
+
+            const targetView = document.getElementById(viewId);
+            if (targetView) targetView.classList.add('active');
+
+            const activeLink = document.getElementById(activeLinkId);
+            if (activeLink) activeLink.classList.add('active-parent');
+
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.remove('mobile-open');
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast-item ${type}`;
+            toast.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.remove(); }, 3000);
+        }
+
+        /* --- CATÁLOGO DE CUENTAS --- */
+        function renderizarCatalogoCuentas(lista = catalogoCuentasArray) {
+            const tbody = document.getElementById('tabla-catalogo-body');
+            if (!tbody) return;
+
+            tbody.innerHTML = '';
+            lista.forEach((cta) => {
+                const indentacion = '&nbsp;&nbsp;&nbsp;&nbsp;'.repeat(cta.nivel - 1);
+                const claseFuente = cta.esPadre ? 'nombre-padre' : 'nombre-hijo';
+
+                tbody.innerHTML += `<tr class="${!cta.activo ? 'row-inactiva' : ''}">
+                    <td><strong>${cta.correlativo}</strong></td>
+                    <td><code>${cta.codigo}</code></td>
+                    <td><span class="${claseFuente}">${indentacion}${cta.nombre}</span></td>
+                    <td><span class="badge badge-info">${cta.tipo}</span></td>
+                    <td>${cta.esPadre ? '<span class="badge badge-warning">Y</span>' : '<span class="badge badge-dark">N</span>'}</td>
+                    <td><code>${cta.hijoDe}</code></td>
+                    <td><small style="color:var(--text-muted);">${cta.usaCC}</small></td>
+                    <td>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <button class="btn-action-tbl" onclick="abrirModalEditarCuenta(${cta.id})">
+                                <i class="fa-solid fa-pen-to-square"></i> Editar
+                            </button>
+                            <div class="switch-container">
+                                <label class="switch">
+                                    <input type="checkbox" ${cta.activo ? 'checked' : ''} onchange="toggleEstadoCuentaContable(${cta.id}, this.checked)">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+        }
+
+        function toggleEstadoCuentaContable(id, isChecked) {
+            const cta = catalogoCuentasArray.find(c => c.id === id);
+            if (cta) {
+                cta.activo = isChecked;
+                renderizarCatalogoCuentas();
+                showToast(cta.activo ? `Cuenta ${cta.codigo} activada` : `Cuenta ${cta.codigo} inhabilitada`, 'info');
+            }
+        }
+
+        function filtrarTablaCatalogo() {
+            const query = document.getElementById('buscar-cuenta-input').value.toLowerCase().trim();
+            const padreFiltro = document.getElementById('filtro-padre-legacy').value;
+
+            const resultado = catalogoCuentasArray.filter(c => {
+                const coincideTexto = c.codigo.toLowerCase().includes(query) || c.nombre.toLowerCase().includes(query) || c.correlativo.includes(query);
+                const coincidePadre = !padreFiltro || c.hijoDe === padreFiltro || c.id.toString() === padreFiltro;
+                return coincideTexto && coincidePadre;
+            });
+
+            renderizarCatalogoCuentas(resultado);
+        }
+
+        function abrirModalCrearCuenta() {
+            document.getElementById('form-cuenta-modal').reset();
+            document.getElementById('modal-cta-id').value = "-1";
+            document.getElementById('container-clasificacion-jerarquica').style.display = 'block';
+            document.querySelector('input[name="modal-tipo-jerarquia"][value="padre"]').checked = true;
+            evaluarTipoJerarquiaModal();
+            
+            document.getElementById('modal-cta-title').innerHTML = '<i class="fa-solid fa-sitemap"></i> Nueva Cuenta Contable';
+            document.getElementById('btn-modal-submit').innerHTML = '<i class="fa-solid fa-save"></i> Guardar Cuenta';
+            document.getElementById('modal-cuenta-contable').classList.add('active');
+        }
+
+        function abrirModalEditarCuenta(id) {
+            const cta = catalogoCuentasArray.find(c => c.id === id);
+            if (!cta) return;
+
+            document.getElementById('modal-cta-id').value = cta.id;
+            document.getElementById('modal-codigo').value = cta.codigo;
+            document.getElementById('modal-nombre').value = cta.nombre;
+            document.getElementById('modal-cc-select').value = cta.usaCC;
+
+            document.getElementById('container-clasificacion-jerarquica').style.display = 'none';
+            document.getElementById('container-cuenta-padre-modal').style.display = 'none';
+
+            document.querySelectorAll('.chk-mod-restriccion-modal').forEach(chk => {
+                chk.checked = cta.restricciones ? cta.restricciones.includes(chk.value) : false;
+            });
+            document.getElementById('modal-restriccion-obs').value = cta.obs || '';
+
+            document.getElementById('modal-cta-title').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Editar Cuenta Contable';
+            document.getElementById('btn-modal-submit').innerHTML = '<i class="fa-solid fa-arrows-rotate"></i> Actualizar Cuenta';
+            document.getElementById('modal-cuenta-contable').classList.add('active');
+        }
+
+        function closeModalCuenta() { document.getElementById('modal-cuenta-contable').classList.remove('active'); }
+
+        function evaluarTipoJerarquiaModal() {
+            const esHijo = document.querySelector('input[name="modal-tipo-jerarquia"][value="hijo"]').checked;
+            document.getElementById('container-cuenta-padre-modal').style.display = esHijo ? 'block' : 'none';
+        }
+
+        function sincronizarSelectCuentasPadreModal() {
+            const selectPadre = document.getElementById('modal-padre-select');
+            selectPadre.innerHTML = '<option value="">-- Seleccione Cuenta Padre --</option>';
+
+            catalogoCuentasArray.filter(c => c.esPadre).forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = `${c.codigo} - ${c.nombre}`;
+                selectPadre.appendChild(opt);
+            });
+        }
+
+        function generarCorrelativoHijoModal() {
+            const padreId = parseInt(document.getElementById('modal-padre-select').value);
+            if (!padreId) return;
+
+            const padreObj = catalogoCuentasArray.find(c => c.id === padreId);
+            if (!padreObj) return;
+
+            const hijosExistentes = catalogoCuentasArray.filter(c => c.padreId === padreId);
+            const proximoNumero = hijosExistentes.length + 1;
+            document.getElementById('modal-codigo').value = `${padreObj.codigo}.${proximoNumero < 10 ? '00' + proximoNumero : '0' + proximoNumero}`;
+        }
+
+        function guardarCuentaModal(e) {
+            e.preventDefault();
+            const editId = parseInt(document.getElementById('modal-cta-id').value);
+            const codigo = document.getElementById('modal-codigo').value.trim();
+            const nombre = document.getElementById('modal-nombre').value.trim();
+            const usaCC = document.getElementById('modal-cc-select').value;
+
+            const restricciones = [];
+            document.querySelectorAll('.chk-mod-restriccion-modal:checked').forEach(chk => restricciones.push(chk.value));
+            const obs = document.getElementById('modal-restriccion-obs').value.trim();
+
+            if (editId !== -1) {
+                const idx = catalogoCuentasArray.findIndex(c => c.id === editId);
+                if (idx !== -1) {
+                    catalogoCuentasArray[idx] = { ...catalogoCuentasArray[idx], codigo, nombre, usaCC, restricciones, obs };
+                    showToast('¡Cuenta contable actualizada!');
+                }
+            } else {
+                const esHijo = document.querySelector('input[name="modal-tipo-jerarquia"][value="hijo"]').checked;
+                const padreId = esHijo ? parseInt(document.getElementById('modal-padre-select').value) : null;
+                const nuevoCorrelativo = (catalogoCuentasArray.length + 290).toString();
+
+                catalogoCuentasArray.push({
+                    id: Date.now(), correlativo: nuevoCorrelativo,
+                    codigo, nombre, tipo: "(D)", esPadre: !esHijo, hijoDe: esHijo ? "295" : "0", usaCC, nivel: esHijo ? 4 : 1, activo: true, padreId, restricciones, obs
+                });
+                showToast('¡Nueva cuenta contable registrada!');
+            }
+
+            renderizarCatalogoCuentas();
+            sincronizarSelectCuentasPadreModal();
+            closeModalCuenta();
+        }
+
+        /* --- MANTENIMIENTO DE PARTIDAS CONTABLES --- */
+        function renderizarPartidasContables(lista = partidasContablesArray) {
+            const tbody = document.getElementById('tabla-partidas-body');
+            if (!tbody) return;
+
+            tbody.innerHTML = '';
+            lista.forEach((p) => {
+                const ccObj = centrosCostoArray.find(c => c.codigo === p.centroCostoCodigo);
+                const ccNombre = ccObj ? `${ccObj.codigo} - ${ccObj.nombre}` : (p.centroCostoCodigo || "Sin Centro");
+
+                tbody.innerHTML += `<tr>
+                    <td><code>${p.numero}</code></td>
+                    <td>${p.fecha}</td>
+                    <td><span class="badge ${p.centroCostoCodigo ? 'badge-info' : 'badge-warning'}"><i class="fa-solid fa-diagram-project"></i> ${ccNombre}</span></td>
+                    <td>${p.glosa}</td>
+                    <td style="text-align:right; font-weight:600; color:var(--purple-primary);">Q ${p.montoDebe.toFixed(2)}</td>
+                    <td style="text-align:right; font-weight:600; color:var(--purple-primary);">Q ${p.montoHaber.toFixed(2)}</td>
+                    <td>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <button class="btn-action-tbl" onclick="abrirModalEditarPoliza(${p.id})" title="Editar partida o cambiar Centro">
+                                <i class="fa-solid fa-pen-to-square"></i> Editar
+                            </button>
+                            <button class="btn-action-tbl" onclick="eliminarPolizaContable(${p.id})" style="color:var(--danger-color);" title="Eliminar Partida">
+                                <i class="fa-solid fa-trash"></i> Borrar
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+        }
+
+        function filtrarPartidasContables() {
+            const query = document.getElementById('buscar-poliza-input').value.toLowerCase().trim();
+            const ccFiltro = document.getElementById('filtro-poliza-cc').value;
+
+            const resultado = partidasContablesArray.filter(p => {
+                const coincideTexto = p.numero.toLowerCase().includes(query) || p.glosa.toLowerCase().includes(query);
+                let coincideCC = true;
+                if (ccFiltro === "SIN_CC") {
+                    coincideCC = !p.centroCostoCodigo;
+                } else if (ccFiltro !== "") {
+                    coincideCC = p.centroCostoCodigo === ccFiltro;
+                }
+                return coincideTexto && coincideCC;
+            });
+
+            renderizarPartidasContables(resultado);
+        }
+
+        function abrirModalCrearPoliza() {
+            document.getElementById('form-poliza-modal').reset();
+            document.getElementById('modal-pol-id').value = "-1";
+            document.getElementById('modal-pol-numero').value = `POL-2026-00${partidasContablesArray.length + 91}`;
+            document.getElementById('modal-pol-fecha').value = new Date().toISOString().split('T')[0];
+            document.getElementById('modal-pol-centro-costo').value = "";
+
+            document.getElementById('lineas-poliza-body').innerHTML = '';
+            agregarFilaPoliza();
+            agregarFilaPoliza();
+
+            document.getElementById('modal-poliza-title').innerHTML = '<i class="fa-solid fa-file-invoice"></i> Nueva Partida Contable';
+            document.getElementById('modal-partida-contable').classList.add('active');
+            calcularTotalesPoliza();
+        }
+
+        function abrirModalEditarPoliza(id) {
+            const p = partidasContablesArray.find(item => item.id === id);
+            if (!p) return;
+
+            document.getElementById('modal-pol-id').value = p.id;
+            document.getElementById('modal-pol-numero').value = p.numero;
+            document.getElementById('modal-pol-fecha').value = p.fecha;
+            document.getElementById('modal-pol-centro-costo').value = p.centroCostoCodigo || "";
+            document.getElementById('modal-pol-glosa').value = p.glosa;
+
+            const tbody = document.getElementById('lineas-poliza-body');
+            tbody.innerHTML = '';
+
+            p.lineas.forEach(l => {
+                agregarFilaPolizaConValores(l.cuentaCodigo, l.auxiliar, l.debe, l.haber);
+            });
+
+            document.getElementById('modal-poliza-title').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Editar Partida y Centro de Costo';
+            document.getElementById('modal-partida-contable').classList.add('active');
+            calcularTotalesPoliza();
+        }
+
+        function closeModalPoliza() { document.getElementById('modal-partida-contable').classList.remove('active'); }
+
+        function agregarFilaPoliza() {
+            agregarFilaPolizaConValores('', '', 0, 0);
+        }
+
+        function agregarFilaPolizaConValores(ctaVal, auxVal, debeVal, haberVal) {
+            const tbody = document.getElementById('lineas-poliza-body');
+
+            let optCuentas = '<option value="">-- Seleccionar Cuenta Contable --</option>';
+            catalogoCuentasArray.filter(c => !c.esPadre).forEach(c => {
+                optCuentas += `<option value="${c.codigo}" ${c.codigo === ctaVal ? 'selected' : ''}>${c.codigo} - ${c.nombre}</option>`;
+            });
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><select class="custom-select select-linea-cta">${optCuentas}</select></td>
+                <td><input type="text" class="custom-input linea-auxiliar" placeholder="Detalle auxiliar..." value="${auxVal}"></td>
+                <td><input type="number" step="0.01" class="custom-input linea-debe" style="text-align:right;" value="${debeVal}" onchange="calcularTotalesPoliza()"></td>
+                <td><input type="number" step="0.01" class="custom-input linea-haber" style="text-align:right;" value="${haberVal}" onchange="calcularTotalesPoliza()"></td>
+                <td style="text-align:center;"><button type="button" class="btn-action-tbl" onclick="eliminarFilaPoliza(this)" style="color:var(--danger-color);"><i class="fa-solid fa-trash"></i></button></td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        function eliminarFilaPoliza(btn) {
+            btn.closest('tr').remove();
+            calcularTotalesPoliza();
+        }
+
+        function calcularTotalesPoliza() {
+            let totalDebe = 0;
+            let totalHaber = 0;
+
+            document.querySelectorAll('.linea-debe').forEach(inp => totalDebe += parseFloat(inp.value) || 0);
+            document.querySelectorAll('.linea-haber').forEach(inp => totalHaber += parseFloat(inp.value) || 0);
+
+            document.getElementById('total-poliza-debe').textContent = `Q ${totalDebe.toFixed(2)}`;
+            document.getElementById('total-poliza-haber').textContent = `Q ${totalHaber.toFixed(2)}`;
+
+            const dif = Math.abs(totalDebe - totalHaber);
+            const statusBox = document.getElementById('status-cuadre-poliza');
+            const btnGuardar = document.getElementById('btn-guardar-poliza');
+
+            if (dif < 0.01 && totalDebe > 0) {
+                statusBox.innerHTML = '<span class="badge badge-success"><i class="fa-solid fa-check-double"></i> Partida Cuadrada Correctamente</span>';
+                btnGuardar.disabled = false;
+            } else {
+                statusBox.innerHTML = `<span class="badge badge-danger"><i class="fa-solid fa-triangle-exclamation"></i> Descuadre: Q ${dif.toFixed(2)}</span>`;
+                btnGuardar.disabled = true;
+            }
+        }
+
+        function guardarPolizaModal(e) {
+            e.preventDefault();
+            const editId = parseInt(document.getElementById('modal-pol-id').value);
+            const numero = document.getElementById('modal-pol-numero').value.trim();
+            const fecha = document.getElementById('modal-pol-fecha').value;
+            const centroCostoCodigo = document.getElementById('modal-pol-centro-costo').value;
+            const glosa = document.getElementById('modal-pol-glosa').value.trim();
+
+            let totalDebe = 0;
+            const lineas = [];
+
+            document.querySelectorAll('#lineas-poliza-body tr').forEach(tr => {
+                const cta = tr.querySelector('.select-linea-cta').value;
+                const aux = tr.querySelector('.linea-auxiliar').value.trim();
+                const d = parseFloat(tr.querySelector('.linea-debe').value) || 0;
+                const h = parseFloat(tr.querySelector('.linea-haber').value) || 0;
+
+                totalDebe += d;
+                lineas.push({ cuentaCodigo: cta, auxiliar: aux, debe: d, haber: h });
+            });
+
+            if (editId !== -1) {
+                const idx = partidasContablesArray.findIndex(p => p.id === editId);
+                if (idx !== -1) {
+                    partidasContablesArray[idx] = { ...partidasContablesArray[idx], numero, fecha, centroCostoCodigo, glosa, montoDebe: totalDebe, montoHaber: totalDebe, lineas };
+                    showToast('¡Partida contable actualizada!');
+                }
+            } else {
+                partidasContablesArray.push({
+                    id: Date.now(), numero, fecha, centroCostoCodigo, glosa, montoDebe: totalDebe, montoHaber: totalDebe, lineas
+                });
+                showToast('¡Nueva partida contable registrada!');
+            }
+
+            renderizarPartidasContables();
+            closeModalPoliza();
+        }
+
+        function eliminarPolizaContable(id) {
+            if (confirm("¿Está seguro de eliminar esta partida contable?")) {
+                partidasContablesArray = partidasContablesArray.filter(p => p.id !== id);
+                renderizarPartidasContables();
+                showToast('Partida eliminada', 'info');
+            }
+        }
+
+        /* --- CENTROS DE COSTO --- */
+        function renderizarCentrosCosto(lista = centrosCostoArray) {
+            const tbody = document.getElementById('tabla-centros-body');
+            if (!tbody) return;
+
+            tbody.innerHTML = '';
+            lista.forEach((cc) => {
+                const indentacion = '&nbsp;&nbsp;&nbsp;&nbsp;'.repeat(cc.nivel - 1);
+                const claseFuente = cc.esPadre ? 'nombre-padre' : 'nombre-hijo';
+
+                tbody.innerHTML += `<tr>
+                    <td><code>${cc.codigo}</code></td>
+                    <td><span class="${claseFuente}">${indentacion}${cc.nombre}</span></td>
+                    <td><span class="badge ${cc.categoria === 'Interno' ? 'badge-info' : 'badge-warning'}">${cc.categoria}</span></td>
+                    <td>${cc.esPadre ? '<span class="badge badge-warning">SI</span>' : '<span class="badge badge-dark">NO</span>'}</td>
+                    <td><code>${cc.hijoDe}</code></td>
+                    <td><small style="color:var(--text-muted);">${cc.tieneMovimientos ? 'Cerrados (Recodificable)' : 'Sin movimientos'}</small></td>
+                    <td>
+                        <div style="display: flex; align-items: center; justify-content: center;">
+                            <button class="btn-action-tbl" onclick="abrirModalEditarCentro(${cc.id})" title="Editar e ingresar datos del centro">
+                                <i class="fa-solid fa-pen-to-square"></i> Editar
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+        }
+
+        function filtrarCentrosCosto() {
+            const query = document.getElementById('buscar-cc-input').value.toLowerCase().trim();
+            const cat = document.getElementById('filtro-cc-cat').value;
+
+            const resultado = centrosCostoArray.filter(c => {
+                const coincideTexto = c.codigo.toLowerCase().includes(query) || c.nombre.toLowerCase().includes(query);
+                const coincideCat = !cat || c.categoria === cat;
+                return coincideTexto && coincideCat;
+            });
+
+            renderizarCentrosCosto(resultado);
+        }
+
+        function abrirModalCrearCentro() {
+            document.getElementById('form-centro-modal').reset();
+            document.getElementById('modal-cc-id').value = "-1";
+            document.getElementById('container-cc-tipo-jerarquia').style.display = 'block';
+            document.querySelector('input[name="cc-jerarquia"][value="padre"]').checked = true;
+            evaluarJerarquiaCentro();
+
+            document.getElementById('modal-cc-title').innerHTML = '<i class="fa-solid fa-diagram-project"></i> Nuevo Centro de Costo';
+            document.getElementById('btn-cc-submit').innerHTML = '<i class="fa-solid fa-save"></i> Guardar Centro';
+            document.getElementById('modal-centro-costo').classList.add('active');
+        }
+
+        function abrirModalEditarCentro(id) {
+            const cc = centrosCostoArray.find(c => c.id === id);
+            if (!cc) return;
+
+            document.getElementById('modal-cc-id').value = cc.id;
+            document.getElementById('modal-cc-codigo').value = cc.codigo;
+            document.getElementById('modal-cc-nombre').value = cc.nombre;
+            document.getElementById('modal-cc-categoria').value = cc.categoria;
+            document.getElementById('modal-cc-cuenta-vinculada').value = cc.cuentaVinculada || "";
+
+            document.getElementById('container-cc-tipo-jerarquia').style.display = 'none';
+            document.getElementById('container-select-cc-padre').style.display = 'none';
+
+            document.getElementById('modal-cc-title').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Editar Centro de Costo';
+            document.getElementById('btn-cc-submit').innerHTML = '<i class="fa-solid fa-arrows-rotate"></i> Actualizar Centro';
+            document.getElementById('modal-centro-costo').classList.add('active');
+        }
+
+        function closeModalCentro() { document.getElementById('modal-centro-costo').classList.remove('active'); }
+
+        function evaluarJerarquiaCentro() {
+            const esHijo = document.querySelector('input[name="cc-jerarquia"][value="hijo"]').checked;
+            document.getElementById('container-select-cc-padre').style.display = esHijo ? 'block' : 'none';
+            document.getElementById('modal-cc-nivel').value = esHijo ? "2" : "1";
+        }
+
+        function sincronizarSelectPadresCentros() {
+            const selectPadre = document.getElementById('modal-cc-padre-select');
+            selectPadre.innerHTML = '<option value="">-- Seleccione Centro Padre --</option>';
+
+            centrosCostoArray.filter(c => c.esPadre).forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.codigo;
+                opt.textContent = `${c.codigo} - ${c.nombre}`;
+                selectPadre.appendChild(opt);
+            });
+        }
+
+        function generarCodigoCentroHijo() {
+            const padreCodigo = document.getElementById('modal-cc-padre-select').value;
+            if (!padreCodigo) return;
+            const hijosExistentes = centrosCostoArray.filter(c => c.hijoDe === padreCodigo);
+            const proximoNum = hijosExistentes.length + 1;
+            document.getElementById('modal-cc-codigo').value = `${padreCodigo}-${proximoNum < 10 ? '0' + proximoNum : proximoNum}`;
+        }
+
+        function guardarCentroModal(e) {
+            e.preventDefault();
+            const editId = parseInt(document.getElementById('modal-cc-id').value);
+            const codigo = document.getElementById('modal-cc-codigo').value.trim();
+            const nombre = document.getElementById('modal-cc-nombre').value.trim();
+            const categoria = document.getElementById('modal-cc-categoria').value;
+            const cuentaVinculada = document.getElementById('modal-cc-cuenta-vinculada').value;
+
+            if (editId !== -1) {
+                const idx = centrosCostoArray.findIndex(c => c.id === editId);
+                if (idx !== -1) {
+                    centrosCostoArray[idx] = { ...centrosCostoArray[idx], codigo, nombre, categoria, cuentaVinculada };
+                    showToast('¡Centro de costo y vinculación actualizados!');
+                }
+            } else {
+                const esHijo = document.querySelector('input[name="cc-jerarquia"][value="hijo"]').checked;
+                const padreCodigo = esHijo ? document.getElementById('modal-cc-padre-select').value : "0";
+
+                centrosCostoArray.push({
+                    id: Date.now(), codigo, nombre, categoria, esPadre: !esHijo, hijoDe: padreCodigo, nivel: esHijo ? 2 : 1, tieneMovimientos: false, cuentaVinculada
+                });
+                showToast('¡Nuevo centro de costo registrado con su vinculación!');
+            }
+
+            renderizarCentrosCosto();
+            sincronizarSelectPadresCentros();
+            closeModalCentro();
+        }
+
+        function openModalCargaMasiva() { document.getElementById('modal-carga-masiva-cc').classList.add('active'); }
+        function closeModalCargaMasiva() { document.getElementById('modal-carga-masiva-cc').classList.remove('active'); }
+
+        function procesarCargaMasiva() {
+            showToast('¡Centros e importaciones de vinculación procesados con éxito!', 'success');
+            closeModalCargaMasiva();
+        }
+    </script>
+</body>
+</html>

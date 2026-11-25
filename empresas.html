@@ -1,0 +1,1731 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tributum - Módulo de Empresas Optimizado</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* --- VARIABLES DE COLOR Y MODO OSCURO UNIFICADAS --- */
+        :root {
+            --bg-main: #f8fafc;
+            --sidebar-color: #222d32;
+            --purple-primary: #605ca8;
+            --purple-hover: #4a478a;
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --success-color: #10b981;
+            --info-color: #3b82f6;
+            --card-border: #e2e8f0;
+            --card-bg: #ffffff;
+            --input-bg: #ffffff;
+            --table-header-bg: #f8fafc;
+            --table-row-border: #f1f5f9;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+        }
+
+        body.dark-mode {
+            --bg-main: #0f172a;
+            --sidebar-color: #1e293b;
+            --purple-primary: #818cf8;
+            --purple-hover: #6366f1;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --card-border: #334155;
+            --card-bg: #1e293b;
+            --input-bg: #0f172a;
+            --table-header-bg: #0f172a;
+            --table-row-border: #334155;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Segoe UI', Helvetica, Arial, sans-serif; }
+        body { background-color: var(--bg-main); color: var(--text-main); min-height: 100vh; overflow-y: auto; transition: background-color 0.3s, color 0.3s; }
+        .app-container { display: flex; min-height: 100vh; }
+
+        /* --- SIDEBAR LATERAL --- */
+        .sidebar {
+            width: 240px; background-color: var(--sidebar-color); color: #b8c7ce;
+            font-size: 14px; position: fixed; top: 0; left: 0; height: 100vh;
+            overflow-y: auto; z-index: 10; transition: all 0.3s ease;
+        }
+        .brand-logo {
+            height: 50px; display: flex; align-items: center; padding: 0 20px;
+            background: rgba(0, 0, 0, 0.15); color: #fff; font-weight: 700; font-size: 16px;
+            letter-spacing: 0.5px; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .menu-list { list-style: none; padding: 10px 0; }
+        .menu-item { border-left: 3px solid transparent; }
+        .menu-link {
+            display: flex; justify-content: space-between; align-items: center;
+            color: #b8c7ce; text-decoration: none; padding: 12px 15px; cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .menu-link:hover { color: #fff; background-color: rgba(255, 255, 255, 0.05); }
+        .menu-item.active { border-left: 3px solid var(--purple-primary); }
+        .menu-item.active > .menu-link { color: #fff; background-color: rgba(255, 255, 255, 0.08); }
+
+        .link-content { display: flex; align-items: center; gap: 10px; }
+        .arrow-icon { font-size: 10px; color: #777; transition: transform 0.2s; }
+        .menu-item.open > .menu-link .arrow-icon { transform: rotate(180deg); }
+
+        .submenu { list-style: none; background-color: rgba(0, 0, 0, 0.2); display: none; }
+        .submenu.open { display: block; }
+        .submenu li a {
+            display: flex; align-items: center; gap: 8px; color: #8aa4af;
+            text-decoration: none; padding: 10px 15px 10px 28px; font-size: 13px;
+            cursor: pointer; transition: color 0.2s, background 0.2s;
+        }
+        .submenu li a:hover { color: #fff; background-color: rgba(255, 255, 255, 0.05); }
+        .submenu li.active-parent > a { color: #fff; background-color: rgba(255, 255, 255, 0.08); font-weight: 600; }
+
+        /* --- CONTENIDO PRINCIPAL --- */
+        .main-content {
+            flex-grow: 1; margin-left: 240px; display: flex; flex-direction: column;
+            min-height: 100vh; width: calc(100% - 240px); transition: all 0.3s ease;
+        }
+        .top-bar {
+            height: 50px; background-color: var(--purple-primary); display: flex;
+            align-items: center; justify-content: space-between; padding: 0 20px;
+        }
+        .top-bar-right { display: flex; align-items: center; gap: 15px; color: white; font-size: 14px; }
+        .btn-theme-toggle {
+            background: rgba(255, 255, 255, 0.2); border: none; color: white;
+            padding: 5px 12px; border-radius: 20px; cursor: pointer; font-size: 12px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .btn-toggle-menu { display: none; background: none; border: none; color: white; font-size: 18px; cursor: pointer; }
+
+        .content-body { padding: 20px; flex-grow: 1; width: 100%; }
+        .page-title { font-size: 24px; font-weight: 600; margin-bottom: 6px; color: var(--text-main); }
+        .page-subtitle { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; }
+
+        .view-section { display: none; width: 100%; }
+        .view-section.active { display: block; }
+
+        /* --- COMPONENTES UI --- */
+        .card-generic {
+            background: var(--card-bg); border-radius: 12px; padding: 24px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02); border: 1px solid var(--card-border); width: 100%;
+            margin-bottom: 20px;
+        }
+        .filter-bar {
+            background: var(--bg-main); border: 1px solid var(--card-border); border-radius: 10px;
+            padding: 15px; margin-bottom: 20px; display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; align-items: end;
+        }
+        .form-group { margin-bottom: 14px; width: 100%; }
+        .form-group label { display: block; font-weight: 500; margin-bottom: 6px; color: var(--text-main); font-size: 13px; }
+        .custom-select, .custom-input {
+            width: 100%; padding: 9px 12px; font-size: 13px; color: var(--text-main);
+            background-color: var(--input-bg); border: 1px solid var(--card-border);
+            border-radius: 8px; outline: none; transition: all 0.2s;
+        }
+        .custom-select:focus, .custom-input:focus { border-color: var(--purple-primary); box-shadow: 0 0 0 3px rgba(96, 92, 168, 0.15); }
+        .custom-select:disabled { opacity: 0.65; cursor: not-allowed; background-color: var(--bg-main); }
+
+        .form-section-block {
+            background: var(--bg-main); border: 1px solid var(--card-border); border-radius: 10px;
+            padding: 15px; margin-bottom: 15px;
+        }
+        .form-section-title {
+            font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+            color: var(--purple-primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+        }
+        .checkbox-inline-label { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-main); cursor: pointer; }
+
+        /* PESTAÑAS (TABS) */
+        .tabs-container { display: flex; gap: 8px; border-bottom: 2px solid var(--card-border); margin-bottom: 18px; flex-wrap: wrap; }
+        .tab-btn {
+            background: none; border: none; padding: 10px 16px; font-size: 13px; font-weight: 600;
+            color: var(--text-muted); cursor: pointer; border-bottom: 3px solid transparent;
+            margin-bottom: -2px; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
+        }
+        .tab-btn.active { color: var(--purple-primary); border-bottom-color: var(--purple-primary); }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* BOTONES */
+        .btn-primary {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            background-color: var(--purple-primary); color: white; border: none; padding: 10px 20px;
+            font-size: 13px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: background 0.2s;
+        }
+        .btn-primary:hover { background-color: var(--purple-hover); }
+        .btn-secondary {
+            background-color: #e2e8f0; color: #334155; border: none; padding: 10px 16px;
+            font-size: 13px; border-radius: 8px; cursor: pointer; font-weight: 600;
+            display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s;
+        }
+        .btn-secondary:hover { background-color: #cbd5e1; }
+
+        .btn-action-tbl {
+            background: rgba(96, 92, 168, 0.08); border: 1px solid rgba(96, 92, 168, 0.2);
+            color: var(--purple-primary); cursor: pointer; padding: 5px 10px; font-size: 12px;
+            border-radius: 6px; transition: all 0.2s; display: inline-flex; align-items: center;
+            gap: 5px; font-weight: 600;
+        }
+        .btn-action-tbl:hover { background: var(--purple-primary); color: #fff; }
+
+        .btn-danger-soft {
+            background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25);
+            color: var(--danger-color); cursor: pointer; padding: 5px 10px; font-size: 12px;
+            border-radius: 6px; transition: all 0.2s; display: inline-flex; align-items: center;
+            gap: 5px; font-weight: 600;
+        }
+        .btn-danger-soft:hover { background: var(--danger-color); color: #fff; }
+
+        .btn-success-soft {
+            background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #059669; cursor: pointer; padding: 5px 10px; font-size: 12px;
+            border-radius: 6px; transition: all 0.2s; display: inline-flex; align-items: center;
+            gap: 5px; font-weight: 600;
+        }
+        .btn-success-soft:hover { background: var(--success-color); color: #fff; }
+
+        /* TABLAS Y BADGES */
+        .table-responsive { overflow-x: auto; width: 100%; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 650px; }
+        .data-table th, .data-table td { padding: 11px 14px; text-align: left; border-bottom: 1px solid var(--table-row-border); }
+        .data-table th { background-color: var(--table-header-bg); color: var(--text-muted); font-weight: 600; }
+        .data-table tbody tr:hover { background-color: rgba(96, 92, 168, 0.03); }
+        .row-inactiva { opacity: 0.55; background-color: rgba(0,0,0,0.02); }
+
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; }
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-info { background: #e0f2fe; color: #0369a1; }
+        .badge-dark { background: #f1f5f9; color: #475569; }
+
+        /* SWITCH */
+        .switch { position: relative; display: inline-block; width: 38px; height: 20px; flex-shrink: 0; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .3s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--purple-primary); }
+        input:checked + .slider:before { transform: translateX(18px); }
+
+        /* BANNERS */
+        .info-banner {
+            background: rgba(59, 130, 246, 0.08); border-left: 4px solid var(--info-color);
+            padding: 11px 14px; border-radius: 8px; font-size: 12.5px; margin-bottom: 15px;
+            display: flex; align-items: flex-start; gap: 10px;
+        }
+        .warn-banner {
+            background: rgba(245, 158, 11, 0.1); border-left: 4px solid var(--warning-color);
+            padding: 11px 14px; border-radius: 8px; font-size: 12.5px; margin-bottom: 15px;
+            display: flex; align-items: flex-start; gap: 10px;
+        }
+
+        /* MODALES */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.55); display: none; justify-content: center; align-items: center; z-index: 999; padding: 15px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-card {
+            background: var(--card-bg); border-radius: 12px; width: 100%; max-width: 820px; padding: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.25); border: 1px solid var(--card-border); max-height: 92vh; overflow-y: auto;
+        }
+        .modal-card-xl { max-width: 960px; }
+
+        /* AUTOCOMPLETE DE EMPLEADOS */
+        .search-dropdown-wrapper { position: relative; }
+        .search-results-list {
+            position: absolute; top: 100%; left: 0; right: 0; z-index: 50;
+            background: var(--card-bg); border: 1px solid var(--card-border);
+            border-radius: 8px; box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            max-height: 230px; overflow-y: auto; display: none; margin-top: 4px;
+        }
+        .search-results-list.open { display: block; }
+        .search-result-item {
+            padding: 9px 12px; cursor: pointer; font-size: 13px; border-bottom: 1px solid var(--table-row-border);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .search-result-item:hover { background: rgba(96, 92, 168, 0.1); color: var(--purple-primary); }
+
+        /* TOAST */
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast-item {
+            min-width: 270px; padding: 14px 18px; border-radius: 8px; background: #ffffff; color: #333;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px;
+            font-size: 13px; font-weight: 500; border-left: 5px solid var(--purple-primary);
+        }
+
+        .split-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+        @media (max-width: 900px) { .split-2col { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.mobile-open { transform: translateX(0); }
+            .main-content { margin-left: 0; width: 100%; }
+            .btn-toggle-menu { display: block; }
+        }
+    </style>
+</head>
+<body>
+    <div id="toast-container"></div>
+
+    <!-- ========================================================= -->
+    <!-- MODAL 1: FICHA DE EMPRESA                                 -->
+    <!-- ========================================================= -->
+    <div class="modal-overlay" id="modal-empresa">
+        <div class="modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h3 style="font-size: 17px; color: var(--purple-primary);" id="modal-emp-title"><i class="fa-solid fa-building"></i> Ficha de Empresa</h3>
+                <button onclick="cerrarModal('modal-empresa')" style="background:none; border:none; font-size:22px; cursor:pointer; color:var(--text-muted);">&times;</button>
+            </div>
+
+            <div class="tabs-container">
+                <button type="button" class="tab-btn active" onclick="cambiarTab('modal-empresa', 'tab-emp-general', this)"><i class="fa-solid fa-id-card"></i> Identidad y Contacto</button>
+                <button type="button" class="tab-btn" onclick="cambiarTab('modal-empresa', 'tab-emp-legal', this)"><i class="fa-solid fa-scale-balanced"></i> Representación Legal</button>
+                <button type="button" class="tab-btn" onclick="cambiarTab('modal-empresa', 'tab-emp-conta', this)"><i class="fa-solid fa-calculator"></i> Contabilidad y Planilla</button>
+            </div>
+
+            <form id="form-empresa" onsubmit="guardarEmpresa(event)">
+                <input type="hidden" id="emp-id" value="-1">
+
+                <!-- TAB 1: IDENTIDAD Y ACTIVIDAD ECONÓMICA -->
+                <div id="tab-emp-general" class="tab-panel active">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+                        <div class="form-group">
+                            <label>Nombre / Razón Social <span style="color:var(--danger-color);">*</span>:</label>
+                            <input type="text" id="emp-nombre" class="custom-input" placeholder="Ej. Suministros Pedagógicos, S.A." required>
+                        </div>
+                        <div class="form-group">
+                            <label>Nombre Comercial:</label>
+                            <input type="text" id="emp-comercial" class="custom-input" placeholder="Ej. SchoolWorld Guatemala">
+                        </div>
+                        <div class="form-group">
+                            <label>NIT:</label>
+                            <input type="text" id="emp-nit" class="custom-input" placeholder="Ej. 8954215-9">
+                        </div>
+                        <div class="form-group">
+                            <label>Moneda Base:</label>
+                            <select id="emp-moneda" class="custom-select">
+                                <option value="GTQ">Quetzal (GTQ)</option>
+                                <option value="USD">Dólar Estadounidense (USD)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Teléfono:</label>
+                            <input type="text" id="emp-telefono" class="custom-input" placeholder="+502 2300-0000">
+                        </div>
+                        <div class="form-group">
+                            <label>Correo Electrónico:</label>
+                            <input type="email" id="emp-correo" class="custom-input" placeholder="admin@empresa.com.gt">
+                        </div>
+                    </div>
+
+                    <!-- SELECTOR DE ACTIVIDAD ECONÓMICA -->
+                    <div class="form-group">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <label style="margin-bottom:0;"><i class="fa-solid fa-industry" style="color:var(--purple-primary);"></i> Actividad Económica Principal:</label>
+                            <button type="button" class="btn-action-tbl" style="padding: 2px 8px; font-size: 11px;" onclick="cerrarModal('modal-empresa'); irAActividadesEconomicas();">
+                                <i class="fa-solid fa-plus"></i> Ir a Catálogo
+                            </button>
+                        </div>
+                        <select id="emp-actividad-id" class="custom-select"></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Dirección Fiscal:</label>
+                        <input type="text" id="emp-direccion" class="custom-input" placeholder="Zona 10, Ciudad de Guatemala">
+                    </div>
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                        <label class="checkbox-inline-label"><input type="checkbox" id="emp-activa" checked> Empresa Activa</label>
+                        <label class="checkbox-inline-label"><input type="checkbox" id="emp-exportador"> Exportador con Factura Electrónica (FEL)</label>
+                        <label class="checkbox-inline-label"><input type="checkbox" id="emp-plantilla"> Empresa Plantilla</label>
+                    </div>
+                </div>
+
+                <!-- TAB 2: REPRESENTACIÓN LEGAL -->
+                <div id="tab-emp-legal" class="tab-panel">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+                        <div class="form-group">
+                            <label>Nombres del Representante:</label>
+                            <input type="text" id="emp-rep-nombres" class="custom-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Apellidos del Representante:</label>
+                            <input type="text" id="emp-rep-apellidos" class="custom-input">
+                        </div>
+                        <div class="form-group">
+                            <label>DPI / Documento Identificación:</label>
+                            <input type="text" id="emp-rep-dpi" class="custom-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Nacionalidad:</label>
+                            <input type="text" id="emp-rep-nacionalidad" class="custom-input" value="Guatemalteca">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: CONTABILIDAD Y PLANILLA -->
+                <div id="tab-emp-conta" class="tab-panel">
+                    <div class="form-section-block">
+                        <div class="form-section-title"><i class="fa-solid fa-book"></i> Parámetros Contables</div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; align-items: start;">
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label>Nivel máximo de cuentas en contabilidad:</label>
+                                <input type="number" id="emp-nivel-conta" class="custom-input" value="6" min="1" max="10" oninput="actualizarVistaPreviaConfigConta()">
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label>Configuración de cuenta:</label>
+                                <input type="text" id="emp-config-cuenta" class="custom-input" placeholder="Ej. (1,1,1,2,2,3)" value="1,1,1,2,2,3" oninput="actualizarVistaPreviaConfigConta()">
+                                <small style="display:block; color:var(--text-muted); font-size:11px; margin-top:4px;">Ej. (1,1,1,2,2,3)</small>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label>Mes trabajo actual:</label>
+                                <select id="emp-mes-trabajo" class="custom-select">
+                                    <option value="1">Enero</option>
+                                    <option value="2">Febrero</option>
+                                    <option value="3">Marzo</option>
+                                    <option value="4">Abril</option>
+                                    <option value="5">Mayo</option>
+                                    <option value="6">Junio</option>
+                                    <option value="7">Julio</option>
+                                    <option value="8">Agosto</option>
+                                    <option value="9">Septiembre</option>
+                                    <option value="10">Octubre</option>
+                                    <option value="11" selected>Noviembre</option>
+                                    <option value="12">Diciembre</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label>Año trabajo actual:</label>
+                                <input type="number" id="emp-anio-trabajo" class="custom-input" value="2026">
+                            </div>
+                        </div>
+                        <div id="preview-config-cuenta" style="margin-top: 10px; font-size: 12px; color: var(--purple-primary); background: rgba(96, 92, 168, 0.08); padding: 7px 11px; border-radius: 6px;"></div>
+                    </div>
+
+                    <div class="form-section-block" style="margin-bottom:0;">
+                        <div class="form-section-title"><i class="fa-solid fa-users-gear"></i> Referencia Patronal (IGSS / Planilla)</div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label>Número Patronal IGSS:</label>
+                                <input type="text" id="emp-patronal" class="custom-input">
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label>Responsable de Planilla:</label>
+                                <input type="text" id="emp-resp-planilla" class="custom-input">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; border-top: 1px solid var(--card-border); padding-top: 15px;">
+                    <button type="button" class="btn-secondary" onclick="cerrarModal('modal-empresa')">Cancelar</button>
+                    <button type="submit" class="btn-primary"><i class="fa-solid fa-save"></i> Guardar Empresa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- MODAL 2: GESTIÓN DE LOCALIDADES POR EMPRESA               -->
+    <!-- ========================================================= -->
+    <div class="modal-overlay" id="modal-gestor-localidades">
+        <div class="modal-card modal-card-xl">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--card-border); padding-bottom: 12px;">
+                <div>
+                    <h3 style="font-size: 17px; color: var(--purple-primary);"><i class="fa-solid fa-store"></i> Localidades y Sucursales</h3>
+                    <small style="color: var(--text-muted);" id="subtitulo-modal-localidades">Empresa seleccionada</small>
+                </div>
+                <button onclick="cerrarModal('modal-gestor-localidades')" style="background:none; border:none; font-size:22px; cursor:pointer; color:var(--text-muted);">&times;</button>
+            </div>
+
+            <input type="hidden" id="gestor-loc-empresa-id">
+
+            <div class="form-section-block">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div class="form-section-title" style="margin-bottom:0;" id="titulo-form-loc"><i class="fa-solid fa-plus-circle"></i> Nueva Localidad en esta Empresa</div>
+                    <button type="button" class="btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="limpiarFormLocalidad()">Limpiar / Nueva</button>
+                </div>
+
+                <form id="form-localidad" onsubmit="guardarLocalidad(event)">
+                    <input type="hidden" id="loc-id" value="-1">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px;">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label>Nombre Localidad <span style="color:var(--danger-color);">*</span>:</label>
+                            <input type="text" id="loc-nombre" class="custom-input" placeholder="Ej. Sucursal Zona 10" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label>Tipo:</label>
+                            <select id="loc-tipo" class="custom-select">
+                                <option value="Sucursal / Tienda">Sucursal / Tienda</option>
+                                <option value="Oficina Central">Oficina Central</option>
+                                <option value="Bodega">Bodega</option>
+                                <option value="Punto de Venta">Punto de Venta</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label>Cuenta Contable (Detalle):</label>
+                            <select id="loc-cuenta-conta" class="custom-select">
+                                <option value="">-- Sin cuenta --</option>
+                                <option value="1.1.01.001">1.1.01.001 - Caja chica</option>
+                                <option value="1.1.02.001">1.1.02.001 - Banco G&T Q.</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label>Centro de Costo:</label>
+                            <select id="loc-cc" class="custom-select">
+                                <option value="">-- Sin CC --</option>
+                                <option value="CC-100">CC-100 - Administración</option>
+                                <option value="CC-102">CC-102 - Operaciones</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label>Establecimiento FEL:</label>
+                            <input type="number" id="loc-fel-est" class="custom-input" placeholder="Ej. 1" min="1">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label>Código Bodega:</label>
+                            <input type="text" id="loc-bod-codigo" class="custom-input" placeholder="Ej. BOD-01">
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; flex-wrap: wrap; gap: 10px;">
+                        <div style="display: flex; gap: 15px;">
+                            <label class="checkbox-inline-label"><input type="checkbox" id="loc-activa" checked> Activa</label>
+                            <label class="checkbox-inline-label"><input type="checkbox" id="loc-venta" checked> Habilitada para Ventas</label>
+                        </div>
+                        <button type="submit" class="btn-primary" style="padding: 8px 18px;"><i class="fa-solid fa-save"></i> Guardar Localidad</button>
+                    </div>
+                </form>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 10px; flex-wrap: wrap;">
+                <input type="text" id="buscar-loc-gestor-input" class="custom-input" style="max-width: 320px;" placeholder="🔍 Buscar localidad o tipo..." onkeyup="renderizarTablaLocalidadesEmpresa()">
+                <small style="color: var(--text-muted);" id="contador-locs-empresa"></small>
+            </div>
+
+            <div class="table-responsive" style="max-height: 290px; overflow-y: auto;">
+                <table class="data-table" style="min-width: 600px;">
+                    <thead>
+                        <tr>
+                            <th>Nombre Localidad</th>
+                            <th>Tipo</th>
+                            <th>Cuenta / CC</th>
+                            <th>FEL / Bodega</th>
+                            <th>Estado</th>
+                            <th style="text-align: center;">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-localidades-empresa-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- ESTRUCTURA PRINCIPAL DE LA APLICACIÓN                     -->
+    <!-- ========================================================= -->
+    <div class="app-container">
+        <!-- SIDEBAR UNIFICADO -->
+        <aside class="sidebar" id="sidebar">
+            <div class="brand-logo">
+                <i class="fa-solid fa-layer-group"></i> TRIBUTUM ERP
+            </div>
+            <ul class="menu-list">
+                <li class="menu-item">
+                    <a class="menu-link" href="index.html">
+                        <span class="link-content"><i class="fa-solid fa-house"></i> Inicio / Panel</span>
+                    </a>
+                </li>
+
+                <li class="menu-item open active" id="menu-empresas">
+                    <a class="menu-link" onclick="toggleSubmenu('sub-empresas', 'menu-empresas')">
+                        <span class="link-content"><i class="fa-solid fa-building"></i> Empresas</span>
+                        <i class="fa-solid fa-chevron-down arrow-icon"></i>
+                    </a>
+                    <ul class="submenu open" id="sub-empresas">
+                        <li id="link-admin-empresas" class="active-parent">
+                            <a onclick="showView('view-admin-empresas', 'link-admin-empresas')">
+                                <i class="fa-regular fa-circle"></i> Administrar Empresas
+                            </a>
+                        </li>
+                        <li id="link-parametros-comerciales">
+                            <a onclick="showView('view-parametros-comerciales', 'link-parametros-comerciales')">
+                                <i class="fa-regular fa-circle"></i> Parámetros Comerciales
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <li class="menu-item" id="menu-bancos">
+                    <a class="menu-link" onclick="toggleSubmenu('sub-bancos', 'menu-bancos')">
+                        <span class="link-content"><i class="fa-solid fa-building-columns"></i> Bancos</span>
+                        <i class="fa-solid fa-chevron-down arrow-icon"></i>
+                    </a>
+                    <ul class="submenu" id="sub-bancos">
+                        <li><a href="Bancos.html#view-operaciones"><i class="fa-regular fa-circle"></i> Operaciones bancarias</a></li>
+                        <li><a href="Bancos.html#view-cuentas-bancarias"><i class="fa-regular fa-circle"></i> Cuentas bancarias</a></li>
+                        <li><a href="Bancos.html#view-conciliacion-bancaria"><i class="fa-regular fa-circle"></i> Conciliación bancaria</a></li>
+                        <li><a href="Bancos.html#view-centro-reportes"><i class="fa-regular fa-circle"></i> Reportes Bancarios</a></li>
+                    </ul>
+                </li>
+
+                <li class="menu-item" id="menu-contabilidad">
+                    <a class="menu-link" onclick="toggleSubmenu('sub-contabilidad', 'menu-contabilidad')">
+                        <span class="link-content"><i class="fa-solid fa-calculator"></i> Contabilidad</span>
+                        <i class="fa-solid fa-chevron-down arrow-icon"></i>
+                    </a>
+                    <ul class="submenu" id="sub-contabilidad">
+                        <li><a href="Contabilidad.html#view-catalogo-cuentas"><i class="fa-regular fa-circle"></i> Catálogo de cuentas</a></li>
+                        <li><a href="Contabilidad.html#view-mantenimiento-partidas"><i class="fa-regular fa-circle"></i> Mantenimiento de Partidas</a></li>
+                        <li><a href="Contabilidad.html#view-centros-costo"><i class="fa-regular fa-circle"></i> Gestión de Centros de Costo</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <button class="btn-toggle-menu" onclick="document.getElementById('sidebar').classList.toggle('mobile-open')"><i class="fa-solid fa-bars"></i></button>
+                    <i class="fa-solid fa-gear" style="color: white; font-size: 18px; cursor: pointer;" title="Configuración: Actividades Económicas" onclick="irAActividadesEconomicas()"></i>
+                </div>
+                <div class="top-bar-right">
+                    <button class="btn-theme-toggle" onclick="toggleDarkMode()"><i class="fa-solid fa-moon"></i> Modo Oscuro</button>
+                    <span><i class="fa-solid fa-user"></i> Homeland</span>
+                </div>
+            </header>
+
+            <div class="content-body">
+
+                <!-- ========================================================= -->
+                <!-- VISTA 1: ADMINISTRAR EMPRESAS                             -->
+                <!-- ========================================================= -->
+                <div id="view-admin-empresas" class="view-section active">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <h2 class="page-title">Administrar Empresas</h2>
+                            <p class="page-subtitle" style="margin-bottom:0;">Gestiona razones sociales, sus localidades/sucursales y los permisos de acceso desde un solo lugar.</p>
+                        </div>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn-secondary" onclick="irAActividadesEconomicas()" title="Ir a pantalla de Actividades Económicas">
+                                <i class="fa-solid fa-gear"></i> Actividades Económicas
+                            </button>
+                            <button class="btn-primary" onclick="abrirModalCrearEmpresa()">
+                                <i class="fa-solid fa-plus-circle"></i> Nueva Empresa
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card-generic">
+                        <div class="filter-bar">
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label><i class="fa-solid fa-magnifying-glass"></i> Buscar por Código, Nombre o NIT:</label>
+                                <input type="text" id="filtro-emp-texto" class="custom-input" placeholder="Ej. Suministros, 8954215-9..." onkeyup="renderizarTablaEmpresas()">
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label><i class="fa-solid fa-toggle-on"></i> Estado:</label>
+                                <select id="filtro-emp-estado" class="custom-select" onchange="renderizarTablaEmpresas()">
+                                    <option value="">Todas</option>
+                                    <option value="activas">Solo Activas</option>
+                                    <option value="inactivas">Solo Inactivas</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Razón Social / Actividad Económica</th>
+                                        <th>NIT</th>
+                                        <th>Nomenclatura</th>
+                                        <th>Estado</th>
+                                        <th style="text-align: center;">Gestión Integral (Ficha · Localidades · Accesos)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-empresas-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========================================================= -->
+                <!-- VISTA 2: ACCESOS Y SEGURIDAD (PANTALLA CRUD DEDICADA)     -->
+                <!-- ========================================================= -->
+                <div id="view-accesos-empresa" class="view-section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <h2 class="page-title"><i class="fa-solid fa-user-shield" style="color:var(--purple-primary);"></i> Accesos y Seguridad por Empresa</h2>
+                            <p class="page-subtitle" style="margin-bottom:0;" id="subtitulo-vista-accesos">Configurando permisos de empresa</p>
+                        </div>
+                        <button class="btn-secondary" onclick="showView('view-admin-empresas', 'link-admin-empresas')">
+                            <i class="fa-solid fa-arrow-left"></i> Volver a Administrar Empresas
+                        </button>
+                    </div>
+
+                    <input type="hidden" id="vista-acc-empresa-id">
+
+                    <div class="card-generic">
+                        <div class="tabs-container">
+                            <button type="button" class="tab-btn active" onclick="cambiarTab('view-accesos-empresa', 'tab-crud-acc-emp', this)">
+                                <i class="fa-solid fa-building-user"></i> Usuarios con Acceso a la Empresa
+                            </button>
+                            <button type="button" class="tab-btn" onclick="cambiarTab('view-accesos-empresa', 'tab-crud-acc-loc', this)">
+                                <i class="fa-solid fa-store-lock"></i> Accesos a Localidades / Sucursales
+                            </button>
+                        </div>
+
+                        <!-- TAB A: CRUD EN TABLA DE EMPLEADOS -> EMPRESA -->
+                        <div id="tab-crud-acc-emp" class="tab-panel active">
+                            <div class="info-banner">
+                                <i class="fa-solid fa-circle-info" style="color:var(--info-color); margin-top:2px;"></i>
+                                <div>El acceso a la <strong>Razón Social (Empresa)</strong> y el acceso a sus <strong>Sucursales (Localidades)</strong> son autorizaciones independientes.</div>
+                            </div>
+
+                            <div class="filter-bar" style="margin-bottom: 15px;">
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label><i class="fa-solid fa-magnifying-glass"></i> Buscar Empleado (Nombre, Código o Puesto):</label>
+                                    <input type="text" id="crud-buscar-usuario-emp" class="custom-input" placeholder="Ej. Ana Lucía, USR-02, Contadora..." onkeyup="renderizarTablaCrudUsuariosEmpresa()">
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label><i class="fa-solid fa-filter"></i> Filtrar por Permiso:</label>
+                                    <select id="crud-filtro-estado-emp" class="custom-select" onchange="renderizarTablaCrudUsuariosEmpresa()">
+                                        <option value="todos">Todos los empleados</option>
+                                        <option value="con-acceso">Solo con acceso activo</option>
+                                        <option value="sin-acceso">Solo sin acceso</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 12.5px; color: var(--text-muted);">
+                                <span id="crud-resumen-usuarios-emp"></span>
+                                <span>Los cambios se aplican de forma inmediata por fila.</span>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 110px;">Código</th>
+                                            <th>Nombre del Empleado</th>
+                                            <th>Puesto / Área</th>
+                                            <th>Localidades Habilitadas</th>
+                                            <th>Estado Acceso</th>
+                                            <th style="text-align: center; width: 170px;">Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabla-crud-usuarios-emp-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- TAB B: CRUD DE ACCESOS A LOCALIDADES POR EMPLEADO -->
+                        <div id="tab-crud-acc-loc" class="tab-panel">
+                            <div class="filter-bar" style="margin-bottom: 15px;">
+                                <div class="form-group search-dropdown-wrapper" style="margin-bottom:0;">
+                                    <label><i class="fa-solid fa-user-magnifying-glass"></i> 1. Buscar Empleado:</label>
+                                    <input type="hidden" id="crud-selected-usuario-loc-id">
+                                    <input type="text" id="crud-buscar-usuario-loc-input" class="custom-input" placeholder="Escribe nombre o código del empleado..."
+                                           onfocus="filtrarDropdownCrudUsuariosLoc()" onkeyup="filtrarDropdownCrudUsuariosLoc()">
+                                    <div class="search-results-list" id="crud-dropdown-usuarios-loc"></div>
+                                </div>
+
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label><i class="fa-solid fa-store"></i> 2. Filtrar Localidad / Sucursal:</label>
+                                    <input type="text" id="crud-buscar-localidad-input" class="custom-input" placeholder="Buscar sucursal, bodega o tipo..."
+                                           onkeyup="renderizarTablaCrudLocalidadesUsuario()">
+                                </div>
+                            </div>
+
+                            <div class="warn-banner">
+                                <i class="fa-solid fa-shield-halved" style="color:var(--warning-color); margin-top:2px;"></i>
+                                <div>Editando localidades de: <strong id="crud-label-usuario-loc-activo">-</strong>. Las localidades <strong>Inactivas</strong> mantienen su marca histórica protegida y no pueden modificarse.</div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Localidad / Sucursal</th>
+                                            <th>Tipo</th>
+                                            <th>FEL / Bodega</th>
+                                            <th>Estado Sucursal</th>
+                                            <th>Permiso Usuario</th>
+                                            <th style="text-align: center; width: 170px;">Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabla-crud-localidades-usuario-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========================================================= -->
+                <!-- VISTA 3: ACTIVIDADES ECONÓMICAS (PANTALLA COMPLETA)       -->
+                <!-- ========================================================= -->
+                <div id="view-actividades-econ" class="view-section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <h2 class="page-title"><i class="fa-solid fa-gear" style="color:var(--purple-primary);"></i> Actividades Económicas</h2>
+                            <p class="page-subtitle" style="margin-bottom:0;">Catálogo jerárquico de referencia económica para razones sociales y reportes patronales.</p>
+                        </div>
+                        <button class="btn-secondary" onclick="showView('view-admin-empresas', 'link-admin-empresas')">
+                            <i class="fa-solid fa-arrow-left"></i> Volver a Administrar Empresas
+                        </button>
+                    </div>
+
+                    <div class="split-2col">
+                        <div class="card-generic">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <h3 style="font-size: 16px; color: var(--purple-primary);" id="titulo-form-act"><i class="fa-solid fa-industry"></i> Registrar Actividad Económica</h3>
+                                <button type="button" class="btn-secondary" style="padding: 5px 10px; font-size: 12px;" onclick="limpiarFormActividad()">Limpiar</button>
+                            </div>
+                            <form id="form-actividad" onsubmit="guardarActividad(event)">
+                                <input type="hidden" id="act-id" value="-1">
+                                <div class="form-group">
+                                    <label>Código de Actividad <span style="color:var(--danger-color);">*</span>:</label>
+                                    <input type="text" id="act-codigo" class="custom-input" placeholder="Ej. 4651" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Nombre / Descripción <span style="color:var(--danger-color);">*</span>:</label>
+                                    <input type="text" id="act-nombre" class="custom-input" placeholder="Ej. Venta al por mayor de equipo educativo" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Hijo de (Actividad Padre opcional):</label>
+                                    <select id="act-padre-id" class="custom-select"></select>
+                                </div>
+                                <button type="submit" class="btn-primary" style="width: 100%;"><i class="fa-solid fa-save"></i> Guardar Actividad</button>
+                            </form>
+                        </div>
+
+                        <div class="card-generic">
+                            <div class="form-group">
+                                <label><i class="fa-solid fa-magnifying-glass"></i> Buscar en Catálogo:</label>
+                                <input type="text" id="buscar-act-input" class="custom-input" placeholder="Buscar por código o descripción..." onkeyup="renderizarTablaActividades()">
+                            </div>
+                            <div class="table-responsive">
+                                <table class="data-table" style="min-width: 420px;">
+                                    <thead>
+                                        <tr>
+                                            <th>Código</th>
+                                            <th>Actividad Económica</th>
+                                            <th>Padre</th>
+                                            <th style="text-align: center;">Editar</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabla-actividades-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========================================================= -->
+                <!-- VISTA 4: PARÁMETROS COMERCIALES                           -->
+                <!-- ========================================================= -->
+                <div id="view-parametros-comerciales" class="view-section">
+                    <h2 class="page-title">Parámetros Comerciales</h2>
+                    <p class="page-subtitle">Configuración independiente de agrupaciones de venta (A–H) y metas presupuestarias por gerencia.</p>
+
+                    <div class="split-2col">
+                        <div class="card-generic">
+                            <h3 style="font-size: 16px; color: var(--purple-primary); margin-bottom: 12px;"><i class="fa-solid fa-layer-group"></i> Agrupación de Ventas (A–H)</h3>
+                            <form onsubmit="guardarAgrupacionVentas(event)" style="display: grid; grid-template-columns: 1fr 1.5fr auto; gap: 10px; align-items: end; margin-bottom: 15px;">
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label>Grupo (A–H):</label>
+                                    <select id="agr-letra" class="custom-select">
+                                        <option value="A">Grupo A</option>
+                                        <option value="B">Grupo B</option>
+                                        <option value="C">Grupo C</option>
+                                        <option value="D">Grupo D</option>
+                                        <option value="E">Grupo E</option>
+                                        <option value="F">Grupo F</option>
+                                        <option value="G">Grupo G</option>
+                                        <option value="H">Grupo H</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label>Mínimo de Ventas (Q):</label>
+                                    <input type="number" id="agr-minimo" class="custom-input" step="0.01" min="1" placeholder="Ej. 50000.00" required>
+                                </div>
+                                <button type="submit" class="btn-primary"><i class="fa-solid fa-plus"></i> Agregar</button>
+                            </form>
+
+                            <div class="table-responsive">
+                                <table class="data-table" style="min-width: 380px;">
+                                    <thead>
+                                        <tr>
+                                            <th>Agrupación</th>
+                                            <th style="text-align: right;">Mínimo de Ventas</th>
+                                            <th>Registrado por</th>
+                                            <th style="text-align: center;">Eliminar</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabla-agrupaciones-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="card-generic">
+                            <h3 style="font-size: 16px; color: var(--purple-primary); margin-bottom: 12px;"><i class="fa-solid fa-bullseye"></i> Metas de Ventas por Gerencia</h3>
+                            <form onsubmit="guardarMetaGerencia(event)">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                                    <div class="form-group" style="margin-bottom:0;">
+                                        <label>Gerencia Activa:</label>
+                                        <select id="meta-gerencia" class="custom-select" required>
+                                            <option value="Gerencia Metropolitana">Gerencia Metropolitana</option>
+                                            <option value="Gerencia Occidente">Gerencia Occidente</option>
+                                            <option value="Gerencia Norte y Oriente">Gerencia Norte y Oriente</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" style="margin-bottom:0;">
+                                        <label>Meta de Ventas (Q):</label>
+                                        <input type="number" id="meta-monto" class="custom-input" step="0.01" min="1" placeholder="Ej. 150000.00" required>
+                                    </div>
+                                </div>
+                                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px;">
+                                    <div class="form-group" style="margin-bottom:0;">
+                                        <label style="font-size: 11px;">% No Alcanzada:</label>
+                                        <input type="number" id="meta-pct-no" class="custom-input" step="0.01" min="0.01" placeholder="Ej. 70" required>
+                                    </div>
+                                    <div class="form-group" style="margin-bottom:0;">
+                                        <label style="font-size: 11px;">% Medianamente:</label>
+                                        <input type="number" id="meta-pct-med" class="custom-input" step="0.01" min="0.01" placeholder="Ej. 85" required>
+                                    </div>
+                                    <div class="form-group" style="margin-bottom:0;">
+                                        <label style="font-size: 11px;">% Alcanzada:</label>
+                                        <input type="number" id="meta-pct-alc" class="custom-input" step="0.01" min="0.01" placeholder="Ej. 100" required>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn-primary" style="width: 100%; margin-bottom: 15px;"><i class="fa-solid fa-save"></i> Guardar Meta por Gerencia</button>
+                            </form>
+
+                            <div class="table-responsive">
+                                <table class="data-table" style="min-width: 420px;">
+                                    <thead>
+                                        <tr>
+                                            <th>Gerencia</th>
+                                            <th style="text-align: right;">Meta (Q)</th>
+                                            <th>Umbrales (%)</th>
+                                            <th style="text-align: center;">Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabla-metas-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        /* ========================================================= */
+        /* DATOS INICIALES (MOCK DATA)                               */
+        /* ========================================================= */
+        let actividadesArray = [
+            { id: 1, codigo: "G", nombre: "Comercio al por mayor y al por menor", padreId: null },
+            { id: 2, codigo: "4651", nombre: "Venta al por mayor de equipo y suministros educativos", padreId: 1 },
+            { id: 3, codigo: "6201", nombre: "Actividades de programación informática y consultoría", padreId: null }
+        ];
+
+        let empresasArray = [
+            {
+                id: 1, codigo: "EMP-001", nombre: "Suministros Pedagógicos, S.A.", comercial: "SchoolWorld Guatemala",
+                nit: "8954215-9", moneda: "GTQ", telefono: "+502 2345-6789", correo: "admin@schoolworld.com.gt",
+                actividadId: 2, direccion: "Zona 10, Ciudad de Guatemala", activa: true, exportador: true, plantilla: false,
+                repNombres: "Carlos Alberto", repApellidos: "Méndez Ortiz", repDpi: "2410 89521 0101", repNacionalidad: "Guatemalteca",
+                nivelConta: 6, configCuenta: "1,1,1,2,2,3", mesTrabajo: "11", anioTrabajo: 2026, patronal: "102548-9", respPlanilla: "Ana Lucía Morales"
+            },
+            {
+                id: 2, codigo: "EMP-002", nombre: "Distribuidora La Central, S.A.", comercial: "La Central",
+                nit: "4512890-3", moneda: "GTQ", telefono: "+502 2210-4400", correo: "contacto@lacentral.com.gt",
+                actividadId: 1, direccion: "Calzada Aguilar Batres, Zona 11", activa: true, exportador: false, plantilla: false,
+                repNombres: "Roberto", repApellidos: "Castillo", repDpi: "1985 44120 0101", repNacionalidad: "Guatemalteca",
+                nivelConta: 5, configCuenta: "1,1,2,2,3", mesTrabajo: "11", anioTrabajo: 2026, patronal: "204511-2", respPlanilla: "Luis Fernando Soto"
+            },
+            {
+                id: 3, codigo: "EMP-003", nombre: "Inversiones del Sur, Ltda.", comercial: "SurCorp (Inactiva)",
+                nit: "1122334-5", moneda: "USD", telefono: "+502 7888-1122", correo: "info@surcorp.gt",
+                actividadId: null, direccion: "Escuintla, Guatemala", activa: false, exportador: false, plantilla: false,
+                repNombres: "María", repApellidos: "López", repDpi: "1800 11223 0501", repNacionalidad: "Guatemalteca",
+                nivelConta: 4, configCuenta: "1,1,2,3", mesTrabajo: "10", anioTrabajo: 2026, patronal: "309988-1", respPlanilla: ""
+            }
+        ];
+
+        let localidadesArray = [
+            { id: 10, empresaId: 1, nombre: "Oficina Central Zona 10", tipo: "Oficina Central", activa: true, venta: true, cuentaConta: "1.1.01.001", cc: "CC-100", felEst: "1", bodCodigo: "BOD-01" },
+            { id: 11, empresaId: 1, nombre: "Sucursal Miraflores", tipo: "Sucursal / Tienda", activa: true, venta: true, cuentaConta: "1.1.02.001", cc: "CC-102", felEst: "2", bodCodigo: "BOD-02" },
+            { id: 12, empresaId: 1, nombre: "Bodega Antigua Zona 4", tipo: "Bodega", activa: false, venta: false, cuentaConta: "", cc: "", felEst: "3", bodCodigo: "BOD-03" },
+            { id: 13, empresaId: 1, nombre: "Tienda Oakland Mall", tipo: "Punto de Venta", activa: true, venta: true, cuentaConta: "1.1.02.001", cc: "CC-102", felEst: "4", bodCodigo: "BOD-04" },
+            { id: 14, empresaId: 2, nombre: "Tienda Mayorista Aguilar Batres", tipo: "Punto de Venta", activa: true, venta: true, cuentaConta: "1.1.02.001", cc: "CC-102", felEst: "1", bodCodigo: "BOD-LC1" }
+        ];
+
+        let usuariosSistema = [
+            { id: "u1", codigo: "USR-01", nombre: "Homeland", puesto: "Administrador General", empresasAsignadas: [1, 2], localidadesAsignadas: [10, 11, 12, 13, 14] },
+            { id: "u2", codigo: "USR-02", nombre: "Ana Lucía Morales", puesto: "Contadora General", empresasAsignadas: [1], localidadesAsignadas: [10, 12] },
+            { id: "u3", codigo: "USR-03", nombre: "Carlos Mendoza", puesto: "Ejecutivo Ventas Sucursal", empresasAsignadas: [1], localidadesAsignadas: [11] },
+            { id: "u4", codigo: "USR-04", nombre: "Luis Fernando Soto", puesto: "Encargado de Planilla", empresasAsignadas: [2], localidadesAsignadas: [14] },
+            { id: "u5", codigo: "USR-05", nombre: "Sofía Ramírez", puesto: "Auxiliar de Tesorería", empresasAsignadas: [], localidadesAsignadas: [] },
+            { id: "u6", codigo: "USR-06", nombre: "Jorge Iván Castellanos", puesto: "Jefe de Bodega", empresasAsignadas: [1], localidadesAsignadas: [12] },
+            { id: "u7", codigo: "USR-07", nombre: "Valeria Estrada", puesto: "Facturación y Caja", empresasAsignadas: [], localidadesAsignadas: [] },
+            { id: "u8", codigo: "USR-08", nombre: "Diego Armando Pérez", puesto: "Auditor Interno", empresasAsignadas: [1, 2], localidadesAsignadas: [10, 11, 13, 14] }
+        ];
+
+        let agrupacionesVentas = [
+            { id: 1, letra: "A", minimo: 100000.00, usuario: "Homeland" },
+            { id: 2, letra: "B", minimo: 50000.00, usuario: "Homeland" }
+        ];
+
+        let metasGerencia = [
+            { id: 1, gerencia: "Gerencia Metropolitana", monto: 250000.00, pctNo: 70, pctMed: 85, pctAlc: 100, usuario: "Homeland" }
+        ];
+
+        /* ========================================================= */
+        /* INICIALIZACIÓN Y UTILIDADES                               */
+        /* ========================================================= */
+        document.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('tributum_dark') === 'true') {
+                document.body.classList.add('dark-mode');
+            }
+
+            sincronizarSelectActividadEmpresa();
+            renderizarTablaEmpresas();
+            renderizarTablasComerciales();
+            limpiarFormActividad();
+            renderizarTablaActividades();
+
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.search-dropdown-wrapper')) {
+                    const dd = document.getElementById('crud-dropdown-usuarios-loc');
+                    if (dd) dd.classList.remove('open');
+                }
+            });
+
+            const hash = window.location.hash.replace('#', '');
+            if (hash === 'view-actividades-econ' || hash === 'view-actividades-config') {
+                irAActividadesEconomicas();
+            } else if (hash && document.getElementById(hash)) {
+                const mapLinks = {
+                    'view-admin-empresas': 'link-admin-empresas',
+                    'view-parametros-comerciales': 'link-parametros-comerciales'
+                };
+                showView(hash, mapLinks[hash] || '');
+            }
+        });
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('tributum_dark', document.body.classList.contains('dark-mode'));
+        }
+
+        function toggleSubmenu(submenuId, parentMenuId) {
+            document.getElementById(submenuId).classList.toggle('open');
+            document.getElementById(parentMenuId).classList.toggle('open');
+        }
+
+        function showView(viewId, activeLinkId) {
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.submenu li').forEach(l => l.classList.remove('active-parent'));
+
+            const target = document.getElementById(viewId);
+            if (target) target.classList.add('active');
+
+            const link = document.getElementById(activeLinkId);
+            if (link) link.classList.add('active-parent');
+
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.remove('mobile-open');
+            }
+        }
+
+        function irAActividadesEconomicas() {
+            limpiarFormActividad();
+            renderizarTablaActividades();
+            showView('view-actividades-econ', 'link-admin-empresas');
+        }
+
+        function cambiarTab(containerId, tabId, btn) {
+            document.querySelectorAll(`#${containerId} .tab-panel`).forEach(p => p.classList.remove('active'));
+            document.querySelectorAll(`#${containerId} .tab-btn`).forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        function cerrarModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast-item';
+            const icon = type === 'info' ? 'fa-circle-info' : (type === 'warning' ? 'fa-triangle-exclamation' : 'fa-circle-check');
+            toast.innerHTML = `<i class="fa-solid ${icon}" style="color:var(--purple-primary);"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3200);
+        }
+
+        /* ========================================================= */
+        /* SINCRONIZAR SELECTOR DE ACTIVIDAD ECONÓMICA EN EMPRESA    */
+        /* ========================================================= */
+        function sincronizarSelectActividadEmpresa(selectedId = '') {
+            const sel = document.getElementById('emp-actividad-id');
+            if (!sel) return;
+            sel.innerHTML = '<option value="">-- Seleccione una Actividad Económica --</option>';
+            actividadesArray.forEach(a => {
+                sel.innerHTML += `<option value="${a.id}">${a.codigo} - ${a.nombre}</option>`;
+            });
+            sel.value = selectedId || '';
+        }
+
+        /* ========================================================= */
+        /* VISTA PREVIA DE CONFIGURACIÓN DE CUENTA CONTABLE          */
+        /* ========================================================= */
+        function actualizarVistaPreviaConfigConta() {
+            const nivelMax = parseInt(document.getElementById('emp-nivel-conta').value) || 0;
+            const raw = document.getElementById('emp-config-cuenta').value.replace(/[()\s]/g, '');
+            const previewEl = document.getElementById('preview-config-cuenta');
+
+            if (!raw) {
+                previewEl.innerHTML = '<i class="fa-solid fa-circle-info"></i> Ingresa los dígitos por nivel separados por comas (Ej. <code>1,1,1,2,2,3</code>) para previsualizar el código de cuenta.';
+                return;
+            }
+
+            const partes = raw.split(',').map(n => parseInt(n)).filter(n => !isNaN(n) && n > 0);
+            if (partes.length === 0) {
+                previewEl.innerHTML = '<span style="color:var(--danger-color);"><i class="fa-solid fa-triangle-exclamation"></i> Formato inválido. Usa números positivos separados por coma, ej: 1,1,1,2,2,3</span>';
+                return;
+            }
+
+            const ejemplo = partes.map((len, idx) => '1'.padStart(len, idx === 0 ? '1' : '0')).join('.');
+            const alertaNivel = (nivelMax > 0 && partes.length !== nivelMax)
+                ? ` <span style="color:var(--warning-color); font-weight:600;">(Aviso: definiste ${partes.length} segmentos y el nivel máximo es ${nivelMax})</span>`
+                : '';
+
+            previewEl.innerHTML = `<i class="fa-solid fa-sitemap"></i> Estructura resultante (${partes.length} niveles): <strong><code>${ejemplo}</code></strong>${alertaNivel}`;
+        }
+
+        /* ========================================================= */
+        /* 1. TABLA PRINCIPAL UNIFICADA DE EMPRESAS                  */
+        /* ========================================================= */
+        function renderizarTablaEmpresas() {
+            const tbody = document.getElementById('tabla-empresas-body');
+            const q = document.getElementById('filtro-emp-texto').value.toLowerCase().trim();
+            const est = document.getElementById('filtro-emp-estado').value;
+
+            const filtradas = empresasArray.filter(e => {
+                const act = actividadesArray.find(a => a.id === e.actividadId);
+                const actTxt = act ? `${act.codigo} ${act.nombre}`.toLowerCase() : '';
+                const matchTxt = e.codigo.toLowerCase().includes(q) || e.nombre.toLowerCase().includes(q) || e.nit.toLowerCase().includes(q) || (e.comercial || '').toLowerCase().includes(q) || actTxt.includes(q);
+                const matchEst = est === '' || (est === 'activas' && e.activa) || (est === 'inactivas' && !e.activa);
+                return matchTxt && matchEst;
+            });
+
+            tbody.innerHTML = '';
+            filtradas.forEach(emp => {
+                const cantLocs = localidadesArray.filter(l => l.empresaId === emp.id).length;
+                const cantUsers = usuariosSistema.filter(u => u.empresasAsignadas.includes(emp.id)).length;
+                const actObj = actividadesArray.find(a => a.id === emp.actividadId);
+
+                tbody.innerHTML += `
+                    <tr class="${!emp.activa ? 'row-inactiva' : ''}">
+                        <td><code>${emp.codigo}</code></td>
+                        <td>
+                            <strong>${emp.nombre}</strong> <small style="color:var(--text-muted);">(${emp.comercial || 'Sin comercial'})</small><br>
+                            <small style="color:var(--purple-primary);"><i class="fa-solid fa-industry"></i> ${actObj ? `${actObj.codigo} - ${actObj.nombre}` : 'Sin actividad económica asignada'}</small>
+                        </td>
+                        <td>${emp.nit || '-'}</td>
+                        <td>
+                            <span class="badge badge-info">${emp.moneda}</span><br>
+                            <small style="color:var(--text-muted);">Niv. ${emp.nivelConta} (${emp.configCuenta || '-'})</small>
+                        </td>
+                        <td>
+                            <label class="switch" title="Activar / Inactivar sin borrar histórico">
+                                <input type="checkbox" ${emp.activa ? 'checked' : ''} onchange="toggleEstadoEmpresa(${emp.id}, this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </td>
+                        <td>
+                            <div style="display: flex; justify-content: center; gap: 6px; flex-wrap: wrap;">
+                                <button class="btn-action-tbl" onclick="abrirModalEditarEmpresa(${emp.id})" title="Editar datos generales, actividad económica, legales y contables">
+                                    <i class="fa-solid fa-pen-to-square"></i> Ficha
+                                </button>
+                                <button class="btn-action-tbl" onclick="abrirGestorLocalidades(${emp.id})" title="Administrar sucursales y bodegas de esta empresa">
+                                    <i class="fa-solid fa-store"></i> Localidades (${cantLocs})
+                                </button>
+                                <button class="btn-action-tbl" onclick="abrirPantallaAccesos(${emp.id})" title="Abrir pantalla CRUD de permisos de usuarios y localidades">
+                                    <i class="fa-solid fa-user-shield"></i> Accesos (${cantUsers})
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function toggleEstadoEmpresa(id, activa) {
+            const emp = empresasArray.find(e => e.id === id);
+            if (emp) {
+                emp.activa = activa;
+                renderizarTablaEmpresas();
+                showToast(activa ? `Empresa "${emp.nombre}" activada.` : `Empresa "${emp.nombre}" inactivada (histórico conservado).`, 'info');
+            }
+        }
+
+        function abrirModalCrearEmpresa() {
+            document.getElementById('form-empresa').reset();
+            document.getElementById('emp-id').value = "-1";
+            document.getElementById('emp-activa').checked = true;
+            sincronizarSelectActividadEmpresa('');
+            document.getElementById('emp-nivel-conta').value = 6;
+            document.getElementById('emp-config-cuenta').value = "1,1,1,2,2,3";
+            actualizarVistaPreviaConfigConta();
+            document.getElementById('modal-emp-title').innerHTML = '<i class="fa-solid fa-building"></i> Nueva Empresa';
+            cambiarTab('modal-empresa', 'tab-emp-general', document.querySelector('#modal-empresa .tab-btn'));
+            document.getElementById('modal-empresa').classList.add('active');
+        }
+
+        function abrirModalEditarEmpresa(id) {
+            const emp = empresasArray.find(e => e.id === id);
+            if (!emp) return;
+
+            document.getElementById('emp-id').value = emp.id;
+            document.getElementById('emp-nombre').value = emp.nombre;
+            document.getElementById('emp-comercial').value = emp.comercial || '';
+            document.getElementById('emp-nit').value = emp.nit || '';
+            document.getElementById('emp-moneda').value = emp.moneda || 'GTQ';
+            document.getElementById('emp-telefono').value = emp.telefono || '';
+            document.getElementById('emp-correo').value = emp.correo || '';
+            sincronizarSelectActividadEmpresa(emp.actividadId || '');
+            document.getElementById('emp-direccion').value = emp.direccion || '';
+            document.getElementById('emp-activa').checked = emp.activa;
+            document.getElementById('emp-exportador').checked = !!emp.exportador;
+            document.getElementById('emp-plantilla').checked = !!emp.plantilla;
+
+            document.getElementById('emp-rep-nombres').value = emp.repNombres || '';
+            document.getElementById('emp-rep-apellidos').value = emp.repApellidos || '';
+            document.getElementById('emp-rep-dpi').value = emp.repDpi || '';
+            document.getElementById('emp-rep-nacionalidad').value = emp.repNacionalidad || 'Guatemalteca';
+
+            document.getElementById('emp-nivel-conta').value = emp.nivelConta || 6;
+            document.getElementById('emp-config-cuenta').value = emp.configCuenta || '1,1,1,2,2,3';
+            document.getElementById('emp-mes-trabajo').value = emp.mesTrabajo || '11';
+            document.getElementById('emp-anio-trabajo').value = emp.anioTrabajo || 2026;
+            document.getElementById('emp-patronal').value = emp.patronal || '';
+            document.getElementById('emp-resp-planilla').value = emp.respPlanilla || '';
+            actualizarVistaPreviaConfigConta();
+
+            document.getElementById('modal-emp-title').innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Editar Empresa (${emp.codigo})`;
+            cambiarTab('modal-empresa', 'tab-emp-general', document.querySelector('#modal-empresa .tab-btn'));
+            document.getElementById('modal-empresa').classList.add('active');
+        }
+
+        function guardarEmpresa(e) {
+            e.preventDefault();
+            const editId = parseInt(document.getElementById('emp-id').value);
+            const configLimpia = document.getElementById('emp-config-cuenta').value.replace(/[()\s]/g, '');
+            const actVal = document.getElementById('emp-actividad-id').value;
+
+            const data = {
+                nombre: document.getElementById('emp-nombre').value.trim(),
+                comercial: document.getElementById('emp-comercial').value.trim(),
+                nit: document.getElementById('emp-nit').value.trim(),
+                moneda: document.getElementById('emp-moneda').value,
+                telefono: document.getElementById('emp-telefono').value.trim(),
+                correo: document.getElementById('emp-correo').value.trim(),
+                actividadId: actVal ? parseInt(actVal) : null,
+                direccion: document.getElementById('emp-direccion').value.trim(),
+                activa: document.getElementById('emp-activa').checked,
+                exportador: document.getElementById('emp-exportador').checked,
+                plantilla: document.getElementById('emp-plantilla').checked,
+                repNombres: document.getElementById('emp-rep-nombres').value.trim(),
+                repApellidos: document.getElementById('emp-rep-apellidos').value.trim(),
+                repDpi: document.getElementById('emp-rep-dpi').value.trim(),
+                repNacionalidad: document.getElementById('emp-rep-nacionalidad').value.trim(),
+                nivelConta: parseInt(document.getElementById('emp-nivel-conta').value) || 6,
+                configCuenta: configLimpia,
+                mesTrabajo: document.getElementById('emp-mes-trabajo').value,
+                anioTrabajo: parseInt(document.getElementById('emp-anio-trabajo').value) || 2026,
+                patronal: document.getElementById('emp-patronal').value.trim(),
+                respPlanilla: document.getElementById('emp-resp-planilla').value.trim()
+            };
+
+            if (editId !== -1) {
+                const idx = empresasArray.findIndex(item => item.id === editId);
+                if (idx !== -1) empresasArray[idx] = { ...empresasArray[idx], ...data };
+                showToast('¡Ficha de empresa actualizada!');
+            } else {
+                const nuevoId = Date.now();
+                const codigo = `EMP-00${empresasArray.length + 1}`;
+                empresasArray.push({ id: nuevoId, codigo, ...data });
+                usuariosSistema[0].empresasAsignadas.push(nuevoId);
+                showToast('¡Empresa creada y asignada al usuario creador!');
+            }
+
+            renderizarTablaEmpresas();
+            cerrarModal('modal-empresa');
+        }
+
+        /* ========================================================= */
+        /* 2. GESTOR CONTEXTUAL DE LOCALIDADES POR EMPRESA           */
+        /* ========================================================= */
+        function abrirGestorLocalidades(empresaId) {
+            const emp = empresasArray.find(e => e.id === empresaId);
+            if (!emp) return;
+
+            document.getElementById('gestor-loc-empresa-id').value = empresaId;
+            document.getElementById('subtitulo-modal-localidades').textContent = `Razón Social: ${emp.codigo} - ${emp.nombre} (Pertenencia fija)`;
+            document.getElementById('buscar-loc-gestor-input').value = '';
+            limpiarFormLocalidad();
+            renderizarTablaLocalidadesEmpresa();
+            document.getElementById('modal-gestor-localidades').classList.add('active');
+        }
+
+        function renderizarTablaLocalidadesEmpresa() {
+            const empresaId = parseInt(document.getElementById('gestor-loc-empresa-id').value);
+            const q = document.getElementById('buscar-loc-gestor-input').value.toLowerCase().trim();
+            const tbody = document.getElementById('tabla-localidades-empresa-body');
+
+            const todasEmpresa = localidadesArray.filter(l => l.empresaId === empresaId);
+            const locs = todasEmpresa.filter(l => l.nombre.toLowerCase().includes(q) || l.tipo.toLowerCase().includes(q));
+
+            document.getElementById('contador-locs-empresa').textContent = `Mostrando ${locs.length} de ${todasEmpresa.length} localidad(es)`;
+
+            tbody.innerHTML = '';
+            if (locs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No se encontraron localidades con ese criterio.</td></tr>';
+                return;
+            }
+
+            locs.forEach(loc => {
+                tbody.innerHTML += `
+                    <tr class="${!loc.activa ? 'row-inactiva' : ''}">
+                        <td><strong>${loc.nombre}</strong></td>
+                        <td><span class="badge badge-info">${loc.tipo}</span></td>
+                        <td><code>${loc.cuentaConta || '-'}</code> <small>${loc.cc ? '· ' + loc.cc : ''}</small></td>
+                        <td><small>${loc.felEst ? 'FEL #' + loc.felEst : '-'} ${loc.bodCodigo ? '· ' + loc.bodCodigo : ''}</small></td>
+                        <td>
+                            <label class="switch" title="Desactivar conserva permisos históricos en accesos">
+                                <input type="checkbox" ${loc.activa ? 'checked' : ''} onchange="toggleEstadoLocalidad(${loc.id}, this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </td>
+                        <td style="text-align: center;">
+                            <button class="btn-action-tbl" onclick="cargarLocalidadParaEditar(${loc.id})"><i class="fa-solid fa-pen"></i> Editar</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function toggleEstadoLocalidad(id, activa) {
+            const loc = localidadesArray.find(l => l.id === id);
+            if (loc) {
+                loc.activa = activa;
+                renderizarTablaLocalidadesEmpresa();
+                renderizarTablaEmpresas();
+                showToast(activa ? `Localidad "${loc.nombre}" activada.` : `Localidad "${loc.nombre}" inactivada (accesos preservados).`, 'info');
+            }
+        }
+
+        function cargarLocalidadParaEditar(id) {
+            const loc = localidadesArray.find(l => l.id === id);
+            if (!loc) return;
+            document.getElementById('loc-id').value = loc.id;
+            document.getElementById('loc-nombre').value = loc.nombre;
+            document.getElementById('loc-tipo').value = loc.tipo;
+            document.getElementById('loc-cuenta-conta').value = loc.cuentaConta || '';
+            document.getElementById('loc-cc').value = loc.cc || '';
+            document.getElementById('loc-fel-est').value = loc.felEst || '';
+            document.getElementById('loc-bod-codigo').value = loc.bodCodigo || '';
+            document.getElementById('loc-activa').checked = loc.activa;
+            document.getElementById('loc-venta').checked = !!loc.venta;
+            document.getElementById('titulo-form-loc').innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Editando Localidad: ${loc.nombre}`;
+        }
+
+        function limpiarFormLocalidad() {
+            document.getElementById('form-localidad').reset();
+            document.getElementById('loc-id').value = "-1";
+            document.getElementById('loc-activa').checked = true;
+            document.getElementById('loc-venta').checked = true;
+            document.getElementById('titulo-form-loc').innerHTML = '<i class="fa-solid fa-plus-circle"></i> Nueva Localidad en esta Empresa';
+        }
+
+        function guardarLocalidad(e) {
+            e.preventDefault();
+            const empresaId = parseInt(document.getElementById('gestor-loc-empresa-id').value);
+            const editId = parseInt(document.getElementById('loc-id').value);
+
+            const data = {
+                empresaId,
+                nombre: document.getElementById('loc-nombre').value.trim(),
+                tipo: document.getElementById('loc-tipo').value,
+                cuentaConta: document.getElementById('loc-cuenta-conta').value,
+                cc: document.getElementById('loc-cc').value,
+                felEst: document.getElementById('loc-fel-est').value,
+                bodCodigo: document.getElementById('loc-bod-codigo').value.trim(),
+                activa: document.getElementById('loc-activa').checked,
+                venta: document.getElementById('loc-venta').checked
+            };
+
+            if (editId !== -1) {
+                const idx = localidadesArray.findIndex(l => l.id === editId);
+                if (idx !== -1) localidadesArray[idx] = { ...localidadesArray[idx], ...data, empresaId: localidadesArray[idx].empresaId };
+                showToast('¡Localidad actualizada!');
+            } else {
+                localidadesArray.push({ id: Date.now(), ...data });
+                showToast('¡Localidad agregada a la empresa!');
+            }
+
+            limpiarFormLocalidad();
+            renderizarTablaLocalidadesEmpresa();
+            renderizarTablaEmpresas();
+        }
+
+        /* ========================================================= */
+        /* 3. PANTALLA CRUD DEDICADA: ACCESOS Y SEGURIDAD            */
+        /* ========================================================= */
+        function abrirPantallaAccesos(empresaId) {
+            const emp = empresasArray.find(e => e.id === empresaId);
+            if (!emp) return;
+
+            document.getElementById('vista-acc-empresa-id').value = empresaId;
+            document.getElementById('subtitulo-vista-accesos').innerHTML = `Razón Social: <strong>${emp.codigo} - ${emp.nombre}</strong> (NIT: ${emp.nit || 'N/A'})`;
+
+            document.getElementById('crud-buscar-usuario-emp').value = '';
+            document.getElementById('crud-filtro-estado-emp').value = 'todos';
+            renderizarTablaCrudUsuariosEmpresa();
+
+            document.getElementById('crud-buscar-localidad-input').value = '';
+            seleccionarUsuarioCrudLocalidades(usuariosSistema[0].id);
+
+            cambiarTab('view-accesos-empresa', 'tab-crud-acc-emp', document.querySelector('#view-accesos-empresa .tab-btn'));
+            showView('view-accesos-empresa', 'link-admin-empresas');
+        }
+
+        function renderizarTablaCrudUsuariosEmpresa() {
+            const empresaId = parseInt(document.getElementById('vista-acc-empresa-id').value);
+            const q = document.getElementById('crud-buscar-usuario-emp').value.toLowerCase().trim();
+            const filtroEst = document.getElementById('crud-filtro-estado-emp').value;
+            const tbody = document.getElementById('tabla-crud-usuarios-emp-body');
+
+            const locsDeEmpresaIds = localidadesArray.filter(l => l.empresaId === empresaId).map(l => l.id);
+
+            const filtrados = usuariosSistema.filter(u => {
+                const tieneAcceso = u.empresasAsignadas.includes(empresaId);
+                const matchTxt = u.nombre.toLowerCase().includes(q) || u.codigo.toLowerCase().includes(q) || u.puesto.toLowerCase().includes(q);
+                const matchEst = filtroEst === 'todos' || (filtroEst === 'con-acceso' && tieneAcceso) || (filtroEst === 'sin-acceso' && !tieneAcceso);
+                return matchTxt && matchEst;
+            });
+
+            const totalConAcceso = usuariosSistema.filter(u => u.empresasAsignadas.includes(empresaId)).length;
+            document.getElementById('crud-resumen-usuarios-emp').innerHTML = `Mostrando <strong>${filtrados.length}</strong> de ${usuariosSistema.length} empleados · <strong>${totalConAcceso}</strong> con acceso activo a esta empresa.`;
+
+            tbody.innerHTML = '';
+            if (filtrados.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:20px;">No se encontraron empleados con ese criterio de búsqueda.</td></tr>';
+                return;
+            }
+
+            filtrados.forEach(u => {
+                const tieneAcceso = u.empresasAsignadas.includes(empresaId);
+                const cantLocsUser = u.localidadesAsignadas.filter(id => locsDeEmpresaIds.includes(id)).length;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><code>${u.codigo}</code></td>
+                        <td><strong>${u.nombre}</strong></td>
+                        <td>${u.puesto}</td>
+                        <td>
+                            <span class="badge badge-info">${cantLocsUser} sucursal(es)</span>
+                            <button type="button" class="btn-action-tbl" style="margin-left:6px; padding:3px 8px; font-size:11px;"
+                                    onclick="irAConfigurarLocalidadesDeUsuario('${u.id}')" title="Gestionar sucursales de este empleado">
+                                <i class="fa-solid fa-store"></i> Ver
+                            </button>
+                        </td>
+                        <td>
+                            ${tieneAcceso
+                                ? '<span class="badge badge-success"><i class="fa-solid fa-check"></i> Con Acceso</span>'
+                                : '<span class="badge badge-dark">Sin Acceso</span>'}
+                        </td>
+                        <td style="text-align: center;">
+                            ${tieneAcceso
+                                ? `<button type="button" class="btn-danger-soft" onclick="toggleAccesoUsuarioEmpresaCrud('${u.id}', false)"><i class="fa-solid fa-ban"></i> Revocar</button>`
+                                : `<button type="button" class="btn-success-soft" onclick="toggleAccesoUsuarioEmpresaCrud('${u.id}', true)"><i class="fa-solid fa-user-check"></i> Dar Acceso</button>`}
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function toggleAccesoUsuarioEmpresaCrud(userId, otorgar) {
+            const empresaId = parseInt(document.getElementById('vista-acc-empresa-id').value);
+            const user = usuariosSistema.find(u => u.id === userId);
+            if (!user) return;
+
+            if (otorgar) {
+                if (!user.empresasAsignadas.includes(empresaId)) user.empresasAsignadas.push(empresaId);
+                showToast(`Acceso otorgado a ${user.nombre}.`);
+            } else {
+                user.empresasAsignadas = user.empresasAsignadas.filter(id => id !== empresaId);
+                showToast(`Acceso revocado a ${user.nombre}.`, 'info');
+            }
+
+            renderizarTablaCrudUsuariosEmpresa();
+            renderizarTablaEmpresas();
+        }
+
+        function irAConfigurarLocalidadesDeUsuario(userId) {
+            seleccionarUsuarioCrudLocalidades(userId);
+            const tabBtnLoc = document.querySelectorAll('#view-accesos-empresa .tab-btn')[1];
+            cambiarTab('view-accesos-empresa', 'tab-crud-acc-loc', tabBtnLoc);
+        }
+
+        function filtrarDropdownCrudUsuariosLoc() {
+            const q = document.getElementById('crud-buscar-usuario-loc-input').value.toLowerCase().trim();
+            const dd = document.getElementById('crud-dropdown-usuarios-loc');
+
+            const matches = usuariosSistema.filter(u =>
+                u.nombre.toLowerCase().includes(q) || u.codigo.toLowerCase().includes(q) || u.puesto.toLowerCase().includes(q)
+            );
+
+            dd.innerHTML = '';
+            if (matches.length === 0) {
+                dd.innerHTML = '<div class="search-result-item" style="color:var(--text-muted);">Sin coincidencias</div>';
+            } else {
+                matches.forEach(u => {
+                    dd.innerHTML += `
+                        <div class="search-result-item" onclick="seleccionarUsuarioCrudLocalidades('${u.id}')">
+                            <div><strong>${u.nombre}</strong> <small style="color:var(--text-muted);">· ${u.puesto}</small></div>
+                            <code>${u.codigo}</code>
+                        </div>
+                    `;
+                });
+            }
+            dd.classList.add('open');
+        }
+
+        function seleccionarUsuarioCrudLocalidades(userId) {
+            const user = usuariosSistema.find(u => u.id === userId);
+            if (!user) return;
+            document.getElementById('crud-selected-usuario-loc-id').value = user.id;
+            document.getElementById('crud-buscar-usuario-loc-input').value = `${user.codigo} - ${user.nombre} (${user.puesto})`;
+            document.getElementById('crud-label-usuario-loc-activo').textContent = `${user.nombre} (${user.codigo})`;
+            document.getElementById('crud-dropdown-usuarios-loc').classList.remove('open');
+            renderizarTablaCrudLocalidadesUsuario();
+        }
+
+        function renderizarTablaCrudLocalidadesUsuario() {
+            const empresaId = parseInt(document.getElementById('vista-acc-empresa-id').value);
+            const userId = document.getElementById('crud-selected-usuario-loc-id').value;
+            const qLoc = document.getElementById('crud-buscar-localidad-input').value.toLowerCase().trim();
+            const user = usuariosSistema.find(u => u.id === userId);
+            const tbody = document.getElementById('tabla-crud-localidades-usuario-body');
+            if (!user) return;
+
+            const locsEmpresa = localidadesArray.filter(l =>
+                l.empresaId === empresaId && (l.nombre.toLowerCase().includes(qLoc) || l.tipo.toLowerCase().includes(qLoc))
+            );
+
+            tbody.innerHTML = '';
+            if (locsEmpresa.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:20px;">No hay localidades que coincidan con el filtro.</td></tr>';
+                return;
+            }
+
+            locsEmpresa.forEach(loc => {
+                const tienePermiso = user.localidadesAsignadas.includes(loc.id);
+
+                let botonAccion = '';
+                if (!loc.activa) {
+                    botonAccion = '<span style="font-size:11px; color:var(--text-muted);"><i class="fa-solid fa-lock"></i> Protegido</span>';
+                } else if (tienePermiso) {
+                    botonAccion = `<button type="button" class="btn-danger-soft" onclick="toggleAccesoLocalidadUsuarioCrud(${loc.id}, false)"><i class="fa-solid fa-ban"></i> Quitar</button>`;
+                } else {
+                    botonAccion = `<button type="button" class="btn-success-soft" onclick="toggleAccesoLocalidadUsuarioCrud(${loc.id}, true)"><i class="fa-solid fa-check"></i> Asignar</button>`;
+                }
+
+                tbody.innerHTML += `
+                    <tr class="${!loc.activa ? 'row-inactiva' : ''}">
+                        <td><strong>${loc.nombre}</strong></td>
+                        <td><span class="badge badge-info">${loc.tipo}</span></td>
+                        <td><small>${loc.felEst ? 'FEL #' + loc.felEst : '-'} ${loc.bodCodigo ? '· ' + loc.bodCodigo : ''}</small></td>
+                        <td>${loc.activa ? '<span class="badge badge-success">Activa</span>' : '<span class="badge badge-danger">Inactiva</span>'}</td>
+                        <td>
+                            ${tienePermiso
+                                ? '<span class="badge badge-success"><i class="fa-solid fa-check"></i> Habilitado</span>'
+                                : '<span class="badge badge-dark">No habilitado</span>'}
+                        </td>
+                        <td style="text-align: center;">${botonAccion}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function toggleAccesoLocalidadUsuarioCrud(locId, otorgar) {
+            const userId = document.getElementById('crud-selected-usuario-loc-id').value;
+            const user = usuariosSistema.find(u => u.id === userId);
+            const loc = localidadesArray.find(l => l.id === locId);
+            if (!user || !loc || !loc.activa) return;
+
+            if (otorgar) {
+                if (!user.localidadesAsignadas.includes(locId)) user.localidadesAsignadas.push(locId);
+                showToast(`Sucursal "${loc.nombre}" asignada a ${user.nombre}.`);
+            } else {
+                user.localidadesAsignadas = user.localidadesAsignadas.filter(id => id !== locId);
+                showToast(`Sucursal "${loc.nombre}" retirada de ${user.nombre}.`, 'info');
+            }
+
+            renderizarTablaCrudLocalidadesUsuario();
+            renderizarTablaCrudUsuariosEmpresa();
+        }
+
+        /* ========================================================= */
+        /* 4. PANTALLA COMPLETA: ACTIVIDADES ECONÓMICAS              */
+        /* ========================================================= */
+        function sincronizarSelectActividadesPadre(excludeId = -1) {
+            const sel = document.getElementById('act-padre-id');
+            sel.innerHTML = '<option value="">-- Ninguna (Nivel Raíz) --</option>';
+            actividadesArray.forEach(a => {
+                if (a.id !== excludeId) {
+                    sel.innerHTML += `<option value="${a.id}">${a.codigo} - ${a.nombre}</option>`;
+                }
+            });
+        }
+
+        function renderizarTablaActividades() {
+            const tbody = document.getElementById('tabla-actividades-body');
+            const q = document.getElementById('buscar-act-input').value.toLowerCase().trim();
+            const filtradas = actividadesArray.filter(a => a.codigo.toLowerCase().includes(q) || a.nombre.toLowerCase().includes(q));
+
+            tbody.innerHTML = '';
+            filtradas.forEach(act => {
+                const padre = actividadesArray.find(p => p.id === act.padreId);
+                tbody.innerHTML += `
+                    <tr>
+                        <td><code>${act.codigo}</code></td>
+                        <td><strong>${act.nombre}</strong></td>
+                        <td>${padre ? `<span class="badge badge-info">${padre.codigo}</span>` : '<span class="badge badge-dark">Raíz</span>'}</td>
+                        <td style="text-align: center;">
+                            <button class="btn-action-tbl" onclick="editarActividad(${act.id})"><i class="fa-solid fa-pen"></i> Editar</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function editarActividad(id) {
+            const act = actividadesArray.find(a => a.id === id);
+            if (!act) return;
+            sincronizarSelectActividadesPadre(act.id);
+            document.getElementById('act-id').value = act.id;
+            document.getElementById('act-codigo').value = act.codigo;
+            document.getElementById('act-nombre').value = act.nombre;
+            document.getElementById('act-padre-id').value = act.padreId || '';
+            document.getElementById('titulo-form-act').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Editando Actividad';
+        }
+
+        function limpiarFormActividad() {
+            document.getElementById('form-actividad').reset();
+            document.getElementById('act-id').value = "-1";
+            sincronizarSelectActividadesPadre(-1);
+            document.getElementById('titulo-form-act').innerHTML = '<i class="fa-solid fa-industry"></i> Registrar Actividad Económica';
+        }
+
+        function guardarActividad(e) {
+            e.preventDefault();
+            const editId = parseInt(document.getElementById('act-id').value);
+            const codigo = document.getElementById('act-codigo').value.trim();
+            const nombre = document.getElementById('act-nombre').value.trim();
+            const padreVal = document.getElementById('act-padre-id').value;
+            const padreId = padreVal ? parseInt(padreVal) : null;
+
+            if (editId !== -1) {
+                const idx = actividadesArray.findIndex(a => a.id === editId);
+                if (idx !== -1) actividadesArray[idx] = { id: editId, codigo, nombre, padreId };
+                showToast('¡Actividad económica actualizada!');
+            } else {
+                actividadesArray.push({ id: Date.now(), codigo, nombre, padreId });
+                showToast('¡Actividad económica agregada!');
+            }
+            limpiarFormActividad();
+            renderizarTablaActividades();
+            sincronizarSelectActividadEmpresa();
+            renderizarTablaEmpresas();
+        }
+
+        /* ========================================================= */
+        /* 5. PARÁMETROS COMERCIALES                                 */
+        /* ========================================================= */
+        function renderizarTablasComerciales() {
+            const tbodyAgr = document.getElementById('tabla-agrupaciones-body');
+            tbodyAgr.innerHTML = '';
+            agrupacionesVentas.forEach(a => {
+                tbodyAgr.innerHTML += `
+                    <tr>
+                        <td><span class="badge badge-info">Grupo ${a.letra}</span></td>
+                        <td style="text-align: right; font-weight: 600;">Q ${a.minimo.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                        <td><small>${a.usuario}</small></td>
+                        <td style="text-align: center;">
+                            <button class="btn-action-tbl" style="color:var(--danger-color);" onclick="eliminarAgrupacion(${a.id})"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            const tbodyMetas = document.getElementById('tabla-metas-body');
+            tbodyMetas.innerHTML = '';
+            metasGerencia.forEach(m => {
+                tbodyMetas.innerHTML += `
+                    <tr>
+                        <td><strong>${m.gerencia}</strong></td>
+                        <td style="text-align: right; font-weight: 600; color:var(--purple-primary);">Q ${m.monto.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                        <td><small>No: ${m.pctNo}% · Med: ${m.pctMed}% · Alc: ${m.pctAlc}%</small></td>
+                        <td style="text-align: center;">
+                            <button class="btn-action-tbl" style="color:var(--danger-color);" onclick="eliminarMeta(${m.id})"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function guardarAgrupacionVentas(e) {
+            e.preventDefault();
+            const letra = document.getElementById('agr-letra').value;
+            const minimo = parseFloat(document.getElementById('agr-minimo').value);
+            agrupacionesVentas.push({ id: Date.now(), letra, minimo, usuario: "Homeland" });
+            document.getElementById('agr-minimo').value = '';
+            renderizarTablasComerciales();
+            showToast(`Agrupación ${letra} guardada.`);
+        }
+
+        function eliminarAgrupacion(id) {
+            agrupacionesVentas = agrupacionesVentas.filter(a => a.id !== id);
+            renderizarTablasComerciales();
+            showToast('Agrupación eliminada.', 'info');
+        }
+
+        function guardarMetaGerencia(e) {
+            e.preventDefault();
+            const gerencia = document.getElementById('meta-gerencia').value;
+            const monto = parseFloat(document.getElementById('meta-monto').value);
+            const pctNo = parseFloat(document.getElementById('meta-pct-no').value);
+            const pctMed = parseFloat(document.getElementById('meta-pct-med').value);
+            const pctAlc = parseFloat(document.getElementById('meta-pct-alc').value);
+
+            metasGerencia.push({ id: Date.now(), gerencia, monto, pctNo, pctMed, pctAlc, usuario: "Homeland" });
+            e.target.reset();
+            renderizarTablasComerciales();
+            showToast(`Meta registrada para ${gerencia}.`);
+        }
+
+        function eliminarMeta(id) {
+            metasGerencia = metasGerencia.filter(m => m.id !== id);
+            renderizarTablasComerciales();
+            showToast('Meta eliminada.', 'info');
+        }
+    </script>
+</body>
+</html>

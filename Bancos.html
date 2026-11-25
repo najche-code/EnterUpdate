@@ -1,0 +1,2692 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tributum - Sistema Integrado Responsive</title>
+    
+    <!-- FontAwesome Font for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- VARIABLES DE COLOR Y MODO OSCURO --- */
+        :root {
+            --bg-main: #f8fafc;
+            --sidebar-color: #222d32;
+            --purple-primary: #605ca8;
+            --purple-hover: #4a478a;
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --success-color: #10b981; 
+            --info-color: #3b82f6;    
+            --card-border: #e2e8f0;
+            --card-bg: #ffffff;
+            --input-bg: #ffffff;
+            --table-header-bg: #f8fafc;
+            --table-row-border: #f1f5f9;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+        }
+
+        body.dark-mode {
+            --bg-main: #0f172a;
+            --sidebar-color: #1e293b;
+            --purple-primary: #818cf8;
+            --purple-hover: #6366f1;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --card-border: #334155;
+            --card-bg: #1e293b;
+            --input-bg: #0f172a;
+            --table-header-bg: #0f172a;
+            --table-row-border: #334155;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-y: auto;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: row;
+        }
+
+        /* --- SIDEBAR LATERAL --- */
+        .sidebar {
+            width: 230px;
+            background-color: var(--sidebar-color);
+            color: #b8c7ce;
+            font-size: 14px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+
+        .menu-list {
+            list-style: none;
+            padding: 15px 0;
+        }
+
+        .menu-item {
+            border-left: 3px solid transparent;
+        }
+
+        .menu-link {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #b8c7ce;
+            text-decoration: none;
+            padding: 12px 15px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .menu-link:hover {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .menu-item.active {
+            border-left: 3px solid var(--purple-primary);
+        }
+
+        .menu-item.active > .menu-link {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .link-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .arrow-icon {
+            font-size: 10px;
+            color: #777;
+            transition: transform 0.2s;
+        }
+
+        .menu-item.open > .menu-link .arrow-icon {
+            transform: rotate(180deg);
+        }
+
+        /* Submenú */
+        .submenu {
+            list-style: none;
+            background-color: rgba(0, 0, 0, 0.2);
+            display: none;
+        }
+
+        .submenu.open {
+            display: block;
+        }
+
+        .submenu li a {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #8aa4af;
+            text-decoration: none;
+            padding: 10px 15px 10px 25px;
+            cursor: pointer;
+            transition: color 0.2s, background 0.2s;
+        }
+
+        .submenu li a:hover {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .submenu li.active-parent > a {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+
+        /* --- CONTENIDO PRINCIPAL --- */
+        .main-content {
+            flex-grow: 1;
+            margin-left: 230px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            width: calc(100% - 230px);
+            transition: all 0.3s ease;
+        }
+
+        /* Top bar superior */
+        .top-bar {
+            height: 50px;
+            background-color: var(--purple-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            transition: background-color 0.3s;
+        }
+
+        .settings-icon {
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .btn-theme-toggle {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+        .btn-theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-toggle-menu {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        /* Cuerpo principal del módulo */
+        .content-body {
+            padding: 20px;
+            flex-grow: 1;
+            width: 100%;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-main);
+        }
+
+        .page-subtitle {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .view-section {
+            display: none;
+            width: 100%;
+        }
+        .view-section.active {
+            display: block;
+        }
+
+        /* --- ESTILOS COMPARTIDOS DE INPUTS Y BOTONES --- */
+        .form-group {
+            margin-bottom: 15px;
+            width: 100%;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: var(--text-main);
+            font-size: 13px;
+        }
+
+        .custom-select, .custom-input, .custom-textarea {
+            width: 100%;
+            padding: 9.5px 12px;
+            font-size: 13px;
+            color: var(--text-main);
+            background-color: var(--input-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .custom-select:focus, .custom-input:focus, .custom-textarea:focus {
+            border-color: var(--purple-primary);
+            box-shadow: 0 0 0 3px rgba(96, 92, 168, 0.15);
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            height: 38px;
+            flex-wrap: wrap;
+        }
+
+        .radio-group-box {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            min-height: 38px;
+        }
+
+        .radio-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--text-main);
+            cursor: pointer;
+        }
+
+        /* --- FILTROS DE BÚSQUEDA --- */
+        .filter-bar {
+            background: var(--bg-main);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            align-items: end;
+        }
+
+        /* --- PESTAÑAS / TABS --- */
+        .tabs-container {
+            display: flex;
+            gap: 10px;
+            border-bottom: 2px solid var(--card-border);
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 10px 18px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            color: var(--purple-primary);
+            border-bottom-color: var(--purple-primary);
+        }
+
+        /* --- LAYOUT DE DOS COLUMNAS EN PARALELO Y RESPONSIVE --- */
+        .split-grid {
+            display: grid;
+            grid-template-columns: 460px 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        /* --- VISTA: OPERACIONES BANCARIAS Y CONTENEDORES --- */
+        .card-operaciones, .card-generic {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            border: 1px solid var(--card-border);
+            width: 100%;
+        }
+
+        .form-section-block {
+            background: var(--bg-main);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-section-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--purple-primary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .monto-moneda-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .monto-moneda-row input { flex: 1; }
+        .monto-moneda-row select { width: 100px; flex-shrink: 0; }
+
+        .label-with-checkbox {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .checkbox-inline-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--text-main);
+            font-weight: normal;
+            cursor: pointer;
+        }
+
+        .textarea-descripcion {
+            width: 100%;
+            height: 90px;
+            resize: vertical;
+            padding: 12px;
+            font-size: 13px;
+            color: var(--text-main);
+            background-color: var(--input-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            outline: none;
+        }
+
+        /* --- ESTILOS CONCILIACIÓN BANCARIA --- */
+        .conciliacion-summary-bar {
+            background: var(--bg-main);
+            border-top: 2px double var(--card-border);
+            border-bottom: 2px double var(--card-border);
+            padding: 15px;
+            text-align: center;
+            font-size: 13px;
+            line-height: 1.8;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        /* --- SECCIÓN RECURRENCIA MEJORADA --- */
+        .recurrencia-section {
+            background-color: var(--bg-main);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 18px 20px;
+            margin-bottom: 20px;
+        }
+
+        .recurrencia-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .recurrencia-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--purple-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .recurrencia-body {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed var(--card-border);
+            display: none;
+        }
+
+        .recurrencia-body.active {
+            display: block;
+        }
+
+        .bottom-action-bar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background-color: var(--purple-primary);
+            color: white;
+            border: none;
+            padding: 10px 22px;
+            font-size: 13px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .btn-primary:hover { background-color: var(--purple-hover); }
+
+        .btn-secondary {
+            background-color: #e2e8f0;
+            color: #475569;
+            border: none;
+            padding: 10px 20px;
+            font-size: 13px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 13px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 13px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-dark {
+            background-color: #334155;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 13px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 13px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-sm-icon {
+            background: rgba(96, 92, 168, 0.1);
+            color: var(--purple-primary);
+            border: 1px solid var(--card-border);
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .btn-sm-icon:hover {
+            background: var(--purple-primary);
+            color: white;
+        }
+
+        .btn-action-tbl {
+            background: none;
+            border: none;
+            color: var(--purple-primary);
+            cursor: pointer;
+            padding: 4px 6px;
+            font-size: 12px;
+            border-radius: 4px;
+            transition: background 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .btn-action-tbl:hover {
+            background: rgba(96, 92, 168, 0.15);
+        }
+
+        /* --- ESTILOS DEL INTERRUPTOR SLIDE / TOGGLE SWITCH --- */
+        .switch-container {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 22px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #cbd5e1;
+            transition: .3s;
+            border-radius: 22px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--purple-primary);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(18px);
+        }
+
+        .row-inactiva {
+            opacity: 0.55;
+            background-color: rgba(0,0,0,0.02);
+        }
+
+        /* --- ESTILOS TABLAS Y VISTAS GENERALES --- */
+        .table-responsive {
+            overflow-x: auto;
+            width: 100%;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            min-width: 650px;
+        }
+
+        .data-table th, .data-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--table-row-border);
+        }
+
+        .data-table th {
+            background-color: var(--table-header-bg);
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-info { background: #e0f2fe; color: #0369a1; }
+        .badge-dark { background: #f1f5f9; color: #475569; }
+
+        /* MODAL Y PREVISUALIZACIÓN CONTABLE */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            padding: 15px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            width: 100%; max-width: 680px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            border: 1px solid var(--card-border);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .accounting-preview-box {
+            background: var(--bg-main);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 12px 15px;
+            margin-top: 12px;
+            margin-bottom: 15px;
+        }
+
+        .accounting-preview-box h4 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--purple-primary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .select-accounting-inline {
+            padding: 4px 8px;
+            font-size: 12px;
+            border-radius: 6px;
+            border: 1px solid var(--card-border);
+            background: var(--input-bg);
+            color: var(--text-main);
+            width: 100%;
+            outline: none;
+        }
+        .select-accounting-inline:focus {
+            border-color: var(--purple-primary);
+        }
+
+        /* TOAST NOTIFICACIONES */
+        #toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: calc(100% - 40px);
+        }
+
+        .toast-item {
+            min-width: 260px;
+            padding: 14px 18px;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #333;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            border-left: 5px solid var(--purple-primary);
+        }
+
+        /* MEDIA QUERIES RESPONSIVE */
+        @media (max-width: 1100px) {
+            .split-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.mobile-open { transform: translateX(0); }
+            .main-content { margin-left: 0; width: 100%; }
+            .btn-toggle-menu { display: block; }
+            .card-operaciones, .card-generic { padding: 18px; }
+            .bottom-action-bar { flex-direction: column-reverse; }
+            .bottom-action-bar button { width: 100%; }
+        }
+
+        @media (max-width: 480px) {
+            .content-body { padding: 12px; }
+            .page-title { font-size: 20px; }
+            .top-bar { padding: 0 12px; }
+            .top-bar-right span { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="toast-container"></div>
+
+    <!-- MODAL EXPRÉS PARA REGISTRAR BANCO -->
+    <div class="modal-overlay" id="modal-express-banco">
+        <div class="modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="font-size: 16px; color: var(--purple-primary);"><i class="fa-solid fa-university"></i> Registrar Nuevo Banco</h3>
+                <button onclick="closeModalExpressBanco()" style="background:none; border:none; font-size:18px; cursor:pointer; color:var(--text-muted);">&times;</button>
+            </div>
+            <form onsubmit="guardarBancoExpress(event)">
+                <div class="form-group">
+                    <label>Nombre del Banco:</label>
+                    <input type="text" id="express-banco-nombre" class="custom-input" placeholder="Ej. Banrural" required>
+                </div>
+                <div class="form-group">
+                    <label>Teléfono:</label>
+                    <input type="text" id="express-banco-tel" class="custom-input" placeholder="Ej. +502 2300-0000">
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                    <button type="button" class="btn-secondary" onclick="closeModalExpressBanco()">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar y Seleccionar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DE REVISIÓN CON SELECCIÓN LIBRE DE CUENTAS CONTABLES, REIMPRESIÓN Y REEMISIÓN -->
+    <div class="modal-overlay" id="modal-aprobar-solicitud">
+        <div class="modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--card-border); padding-bottom: 10px;">
+                <h3 style="font-size: 16px; color: var(--purple-primary);"><i class="fa-solid fa-file-signature"></i> Detalles de la Operación y Contabilización</h3>
+                <button onclick="closeModalAprobar()" style="background:none; border:none; font-size:18px; cursor:pointer; color:var(--text-muted);">&times;</button>
+            </div>
+            
+            <div id="detalle-solicitud-body" style="font-size: 13px; line-height: 1.6;">
+                <!-- Contenido dinámico -->
+            </div>
+
+            <!-- FORMULARIO SECUNDARIO DE ENTREGA (OCULTO POR DEFECTO) -->
+            <div id="form-registro-entrega" style="display: none; background: var(--bg-main); border: 1px solid var(--card-border); border-radius: 8px; padding: 12px 15px; margin-bottom: 15px;">
+                <h4 style="font-size: 13px; color: var(--purple-primary); margin-bottom: 10px;"><i class="fa-solid fa-hand-holding-dollar"></i> Registrar Entrega de Cheque / Documento</h4>
+                <div class="form-group" style="margin-bottom: 8px;">
+                    <label>Nombre de quien recibe:</label>
+                    <input type="text" id="entrega-recibido-por" class="custom-input" placeholder="Nombre completo">
+                </div>
+                <div class="form-group" style="margin-bottom: 8px;">
+                    <label>DPI / Identificación:</label>
+                    <input type="text" id="entrega-dpi" class="custom-input" placeholder="No. Documento">
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;">
+                    <button type="button" class="btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="cancelarEntrega()">Cancelar</button>
+                    <button type="button" class="btn-success" style="padding: 6px 12px; font-size: 12px;" onclick="confirmarEntrega()">Guardar Registro de Entrega</button>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; margin-top: 15px;" id="modal-acciones-footer">
+                <!-- Se inyecta JS -->
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        
+        <!-- SIDEBAR DE NAVEGACIÓN LATERAL -->
+        <aside class="sidebar" id="sidebar">
+            <ul class="menu-list">
+                <!-- BANCOS -->
+                <li class="menu-item open active" id="menu-bancos">
+                    <a class="menu-link" onclick="toggleSubmenu('sub-bancos', 'menu-bancos')">
+                        <span class="link-content"><i class="fa-solid fa-building-columns"></i> Bancos</span>
+                        <i class="fa-solid fa-chevron-down arrow-icon"></i>
+                    </a>
+                    <ul class="submenu open" id="sub-bancos">
+                        <li id="link-operaciones-bancos" class="active-parent">
+                            <a onclick="showView('view-operaciones', 'link-operaciones-bancos')">
+                                <span><i class="fa-regular fa-circle"></i> Operaciones bancarias</span>
+                            </a>
+                        </li>
+                        <li id="link-cuentas-bancarias">
+                            <a onclick="showView('view-cuentas-bancarias', 'link-cuentas-bancarias')">
+                                <span><i class="fa-regular fa-circle"></i> Cuentas bancarias</span>
+                            </a>
+                        </li>
+                        <li id="link-conciliacion-bancaria">
+                            <a onclick="showView('view-conciliacion-bancaria', 'link-conciliacion-bancaria')">
+                                <span><i class="fa-regular fa-circle"></i> Conciliación bancaria</span>
+                            </a>
+                        </li>
+                        <li id="link-centro-reportes">
+                            <a onclick="showView('view-centro-reportes', 'link-centro-reportes')">
+                                <span><i class="fa-regular fa-circle"></i> Reportes Bancarios</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- VENTAS -->
+                <li class="menu-item" id="menu-ventas">
+                    <a class="menu-link" onclick="toggleSubmenu('sub-ventas', 'menu-ventas')">
+                        <span class="link-content"><i class="fa-solid fa-cart-shopping"></i> Ventas</span>
+                        <i class="fa-solid fa-chevron-down arrow-icon"></i>
+                    </a>
+                    <ul class="submenu" id="sub-ventas">
+                        <li id="link-facturacion">
+                            <a onclick="showView('view-facturacion', 'link-facturacion')">
+                                <span><i class="fa-regular fa-circle"></i> Facturación</span>
+                            </a>
+                        </li>
+                        <li id="link-clientes">
+                            <a onclick="showView('view-clientes', 'link-clientes')">
+                                <span><i class="fa-regular fa-circle"></i> Clientes</span>
+                            </a>
+                        </li>
+                        <li id="link-cxc">
+                            <a onclick="showView('view-cxc', 'link-cxc')">
+                                <span><i class="fa-regular fa-circle"></i> Cuentas por Cobrar</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- COMPRAS Y CXP -->
+                <li class="menu-item" id="menu-compras">
+                    <a class="menu-link" onclick="toggleSubmenu('sub-compras', 'menu-compras')">
+                        <span class="link-content"><i class="fa-solid fa-truck-field"></i> Compras & CxP</span>
+                        <i class="fa-solid fa-chevron-down arrow-icon"></i>
+                    </a>
+                    <ul class="submenu" id="sub-compras">
+                        <li id="link-cxp">
+                            <a onclick="showView('view-cxp', 'link-cxp')">
+                                <span><i class="fa-regular fa-circle"></i> Cuentas por Pagar</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <button class="btn-toggle-menu" onclick="toggleMobileMenu()"><i class="fa-solid fa-bars"></i></button>
+                    <i class="fa-solid fa-gear settings-icon" title="Configuración"></i>
+                </div>
+                <div class="top-bar-right">
+                    <button class="btn-theme-toggle" id="btn-theme-toggle" onclick="toggleDarkMode()">
+                        <i class="fa-solid fa-moon"></i> Modo Oscuro
+                    </button>
+                    <span><i class="fa-solid fa-user"></i> Homeland</span>
+                </div>
+            </header>
+            
+            <div class="content-body">
+                
+                <!-- 1. VISTA: OPERACIONES BANCARIAS -->
+                <div id="view-operaciones" class="view-section active">
+                    <h2 class="page-title">Operaciones Bancarias & Solicitudes</h2>
+                    <p class="page-subtitle">Gestiona la consulta, aprobación, anulación y emisión de transacciones bancarias.</p>
+
+                    <div id="contenedor-tabla-operaciones" class="card-generic">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                            <h3 style="font-size: 16px; color: var(--purple-primary);"><i class="fa-solid fa-list-ul"></i> Registro de Operaciones y Solicitudes</h3>
+                            <button class="btn-primary" onclick="mostrarFormularioOperacion()">
+                                <i class="fa-solid fa-plus"></i> Nueva Solicitud / Operación
+                            </button>
+                        </div>
+
+                        <!-- BARRA DE FILTROS -->
+                        <div class="filter-bar">
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label><i class="fa-solid fa-filter"></i> Tipo Operación:</label>
+                                <select class="custom-select" id="filtro-tipo" onchange="aplicarFiltros()">
+                                    <option value="">-- Todas --</option>
+                                    <option value="Emisión de cheque">Emisión de cheque</option>
+                                    <option value="Transferencia bancaria">Transferencia bancaria</option>
+                                    <option value="Mantenimiento de depósitos y notas de crédito">Mantenimiento de depósitos y notas de crédito</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label><i class="fa-solid fa-building-columns"></i> Cuenta Bancaria:</label>
+                                <select class="custom-select" id="filtro-cuenta" onchange="aplicarFiltros()">
+                                    <option value="">-- Todas las cuentas --</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label><i class="fa-solid fa-flag"></i> Estado:</label>
+                                <select class="custom-select" id="filtro-estado" onchange="aplicarFiltros()">
+                                    <option value="">-- Todos los estados --</option>
+                                    <option value="Pendiente">Pendientes</option>
+                                    <option value="Aprobado">Aprobados</option>
+                                    <option value="Rechazado">Rechazados</option>
+                                    <option value="Anulado">Anulados</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label><i class="fa-solid fa-user-tag"></i> Proveedor / Beneficiario:</label>
+                                <input type="text" class="custom-input" id="filtro-proveedor" placeholder="Buscar por nombre..." onkeyup="aplicarFiltros()">
+                            </div>
+
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label><i class="fa-solid fa-calendar-day"></i> Desde:</label>
+                                <input type="date" class="custom-input" id="filtro-fecha-desde" onchange="aplicarFiltros()">
+                            </div>
+
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label><i class="fa-solid fa-calendar-check"></i> Hasta:</label>
+                                <input type="date" class="custom-input" id="filtro-fecha-hasta" onchange="aplicarFiltros()">
+                            </div>
+
+                            <div>
+                                <button type="button" class="btn-secondary" onclick="limpiarFiltros()" style="width: 100%; height: 38px;">
+                                    <i class="fa-solid fa-eraser"></i> Limpiar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Tipo</th>
+                                        <th>Cuenta Bancaria</th>
+                                        <th>Beneficiario / Proveedor</th>
+                                        <th>Monto</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-operaciones-body">
+                                    <!-- Se puebla mediante JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- FORMULARIO DE EMISIÓN DE OPERACIONES ORDENADO POR BLOQUES -->
+                    <div id="contenedor-formulario-operacion" class="card-operaciones" style="display: none;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--card-border); padding-bottom: 15px;">
+                            <h3 style="font-size: 16px; color: var(--purple-primary);" id="titulo-form-operacion"><i class="fa-solid fa-file-circle-plus"></i> Nueva Solicitud de Operación</h3>
+                            <button class="btn-secondary" onclick="ocultarFormularioOperacion()">
+                                <i class="fa-solid fa-arrow-left"></i> Volver al listado
+                            </button>
+                        </div>
+
+                        <form id="form-operacion-cheque" onsubmit="guardarOperacionBancaria(event)">
+                            <input type="hidden" id="edit-operacion-id" value="-1">
+
+                            <!-- BLOQUE 1: DATOS PRINCIPALES DE LA TRANSACCIÓN -->
+                            <div class="form-section-block">
+                                <div class="form-section-title"><i class="fa-solid fa-receipt"></i> Datos Principales de la Transacción</div>
+                                
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px;">
+                                    <div class="form-group" style="margin-bottom:0;">
+                                        <label>Operación a realizar:</label>
+                                        <select class="custom-select" id="op-tipo-select" style="font-weight: 600;" onchange="evaluarTipoOperacionSeleccionado()">
+                                            <option value="Emisión de cheque" selected>Emisión de cheque</option>
+                                            <option value="Transferencia bancaria">Transferencia bancaria</option>
+                                            <option value="Mantenimiento de depósitos y notas de crédito">Mantenimiento de depósitos y notas de crédito</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group" style="margin-bottom:0;">
+                                        <label>Fecha de Operación:</label>
+                                        <input type="date" id="op-fecha-input" class="custom-input" required style="font-weight: 600;">
+                                    </div>
+
+                                    <div class="form-group" style="margin-bottom:0;" id="container-cuenta-general">
+                                        <label>Cuenta Bancaria:</label>
+                                        <select class="custom-select select-cuentas-dinamico" id="select-cuentas-operaciones">
+                                            <option value="" selected>Elija una cuenta bancaria</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group" style="margin-bottom:0;">
+                                        <label>Monto y Moneda:</label>
+                                        <div class="monto-moneda-row">
+                                            <input type="number" id="op-monto" class="custom-input" value="0.00" step="0.01" required>
+                                            <select class="custom-select" id="op-moneda">
+                                                <option value="USD" selected>Dolar</option>
+                                                <option value="GTQ">Quetzal</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group" style="margin-bottom:0;" id="container-tc-general">
+                                        <label>Tipo de cambio:</label>
+                                        <input type="number" id="op-tipo-cambio" class="custom-input" value="1" step="0.0001">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- BLOQUE CAMPOS DINÁMICOS PARA "Mantenimiento de depósitos y notas de crédito" -->
+                            <div class="form-section-block" id="block-extension-mantenimiento-notas" style="display: none;">
+                                <div class="form-section-title"><i class="fa-solid fa-file-invoice-dollar"></i> Configuración de la Nota / Depósito</div>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                                    <div class="form-group" style="margin-bottom:0;">
+                                        <label>Nota de...</label>
+                                        <div class="radio-group-box">
+                                            <label class="radio-item"><input type="radio" name="tipo-nota-ext" value="credito" checked> Crédito (depósito)</label>
+                                            <label class="radio-item"><input type="radio" name="tipo-nota-ext" value="debito"> Débito</label>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group" style="margin-bottom:0;">
+                                        <label>Marca de Registro:</label>
+                                        <div class="radio-group-box">
+                                            <label class="radio-item"><input type="checkbox" id="chk-ext-deposito"> Marcar como Depósito</label>
+                                            <label class="radio-item"><input type="checkbox" id="chk-ext-nc"> Marcar como Nota de Crédito</label>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group" style="margin-bottom:0;">
+                                        <label>Cliente / Proveedor:</label>
+                                        <select class="custom-select" id="select-ext-entidad">
+                                            <option value="">-- Seleccionar Entidad --</option>
+                                            <option value="1">Proveedor: Suministros Globales, S.A.</option>
+                                            <option value="2">Cliente: Distribuidora La Central, S.A.</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- BLOQUE CAMPOS DINÁMICOS PARA "Transferencia bancaria" -->
+                            <div class="form-section-block" id="block-extension-transferencias" style="display: none;">
+                                <div class="form-section-title"><i class="fa-solid fa-arrow-right-arrow-left"></i> Parámetros de Transferencia Bancaria</div>
+                                
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                                    <div class="form-group" style="margin-bottom:0;">
+                                        <label>Tipo de Transferencia:</label>
+                                        <div class="radio-group-box">
+                                            <label class="radio-item"><input type="radio" name="tipo-transf-radio" value="directa" checked> Directa entre cuentas</label>
+                                            <label class="radio-item"><input type="radio" name="tipo-transf-radio" value="cheque"> Emisión de cheque</label>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group" style="margin-bottom:0;">
+                                        <label>Marca de Registro:</label>
+                                        <div class="radio-group-box">
+                                            <label class="radio-item"><input type="radio" name="marca-transf-radio" value="nc" checked> El Ingreso Marcar como Nota de Crédito</label>
+                                            <label class="radio-item"><input type="radio" name="marca-transf-radio" value="deposito"> El Ingreso Marcar como Depósito</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                                    <div class="form-group" style="margin-bottom:0;">
+                                        <label>Cuenta Origen:</label>
+                                        <select class="custom-select select-cuentas-dinamico" id="transf-cuenta-origen">
+                                            <option value="">Elija una cuenta bancaria</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group" style="margin-bottom:0;">
+                                        <label>Cuenta Destino:</label>
+                                        <select class="custom-select select-cuentas-dinamico" id="transf-cuenta-destino">
+                                            <option value="">Elija una cuenta bancaria</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div style="background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 12px 15px;">
+                                    <label style="font-weight: 700; color: var(--purple-primary); font-size: 12px; margin-bottom: 10px; display: block;">
+                                        <i class="fa-solid fa-calculator"></i> Conversiones y Tipos de Cambio
+                                    </label>
+
+                                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; font-size: 12px; align-items: center;">
+                                        <div><strong>Moneda Empresa:</strong> Quetzal (Q)</div>
+                                        <div><strong>T.C. Origen a Destino:</strong> <span style="color:var(--purple-primary); font-weight:700;">1.00</span></div>
+                                        <div>
+                                            <label style="font-size: 11px;">T.C. Origen a Empresa:</label>
+                                            <input type="number" class="custom-input" value="1" step="0.0001">
+                                        </div>
+                                        <div>
+                                            <label style="font-size: 11px;">T.C. Destino a Empresa:</label>
+                                            <input type="number" class="custom-input" value="1" step="0.0001">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- BLOQUE 2: BENEFICIARIO Y CLASIFICACIÓN (Se oculta para Transferencia bancaria) -->
+                            <div class="form-section-block" id="block-beneficiario-clasificacion">
+                                <div class="form-section-title"><i class="fa-solid fa-user-gear"></i> Beneficiario y Clasificación</div>
+
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 15px; align-items: end;">
+                                    <div class="form-group" style="margin-bottom:0;">
+                                        <div class="label-with-checkbox">
+                                            <label style="margin-bottom: 6px;">Cheque / Pago a nombre de:</label>
+                                            <label class="checkbox-inline-label" style="margin-bottom: 6px;">
+                                                <input type="checkbox" id="chk-anticipo"> Anticipo CxP
+                                            </label>
+                                        </div>
+                                        <input type="text" id="op-beneficiario" class="custom-input" placeholder="Nombre del proveedor / beneficiario">
+                                    </div>
+
+                                    <div class="form-group" style="margin-bottom:0;">
+                                        <label>Departamento Solicita:</label>
+                                        <select class="custom-select" id="op-departamento">
+                                            <option value="" selected>-- Seleccione departamento --</option>
+                                            <option value="Administración">Administración</option>
+                                            <option value="Ventas">Ventas</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group" style="margin-bottom:0;">
+                                        <label>Modo de conversión:</label>
+                                        <div class="radio-group" style="background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 0 12px;">
+                                            <label class="radio-item">
+                                                <input type="radio" name="modo-conversion" value="cuenta-otra"> Cuenta -&gt; Otra
+                                            </label>
+                                            <label class="radio-item">
+                                                <input type="radio" name="modo-conversion" value="otra-cuenta" checked> Otra -&gt; Cuenta
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- BLOQUE 3: DESCRIPCIÓN O JUSTIFICACIÓN -->
+                            <div class="form-group">
+                                <label><i class="fa-solid fa-align-left"></i> Justificación o Descripción del Pago / Motivo:</label>
+                                <textarea id="op-descripcion" class="textarea-descripcion" placeholder="Escriba el concepto detallado o el motivo de la operación..."></textarea>
+                            </div>
+
+                            <!-- BLOQUE 4: CONFIGURACIÓN DE RECURRENCIA -->
+                            <div class="recurrencia-section">
+                                <div class="recurrencia-header">
+                                    <div class="recurrencia-title">
+                                        <i class="fa-solid fa-arrows-rotate"></i> Configurar Solicitud Recurrente
+                                    </div>
+                                    <div class="switch-container">
+                                        <label class="switch">
+                                            <input type="checkbox" id="chk-activar-recurrencia" onchange="toggleFormularioRecurrencia(this.checked)">
+                                            <span class="slider"></span>
+                                        </label>
+                                        <span style="font-size: 12px; font-weight: 600;" id="lbl-estado-recurrencia">No</span>
+                                    </div>
+                                </div>
+
+                                <div class="recurrencia-body" id="recurrencia-body">
+                                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                                        <div class="form-group" style="margin-bottom:0;">
+                                            <label>Repetir Cada:</label>
+                                            <input type="number" id="rec-form-intervalo" class="custom-input" value="15" min="1">
+                                        </div>
+
+                                        <div class="form-group" style="margin-bottom:0;">
+                                            <label>Frecuencia:</label>
+                                            <select id="rec-form-frecuencia" class="custom-select">
+                                                <option value="Dias" selected>Días</option>
+                                                <option value="Semanas">Semanas</option>
+                                                <option value="Meses">Meses</option>
+                                                <option value="Años">Años</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group" style="margin-bottom:0;">
+                                            <label>Fecha de Inicio:</label>
+                                            <input type="date" id="rec-form-fecha-inicio" class="custom-input">
+                                        </div>
+                                    </div>
+
+                                    <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 12px 15px; border-radius: 8px;">
+                                        <label style="font-weight: 600; font-size: 12px; display: block; margin-bottom: 8px; color: var(--purple-primary);">Condición de Finalización:</label>
+                                        <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: center;">
+                                            <label class="radio-item">
+                                                <input type="radio" name="tipo-fin-form-recurrencia" value="fecha" checked onchange="toggleFormFinRecurrencia()">
+                                                <span>Establecer Fecha Fin de Recurrencia</span>
+                                            </label>
+                                            <label class="radio-item">
+                                                <input type="radio" name="tipo-fin-form-recurrencia" value="cantidad" onchange="toggleFormFinRecurrencia()">
+                                                <span>Establecer Cantidad de Recurrencias</span>
+                                            </label>
+                                        </div>
+
+                                        <div style="margin-top: 10px;" id="container-form-fin-fecha">
+                                            <label style="font-size: 11px; font-weight: 500; margin-bottom: 4px; display: block;">Fecha Fin de Recurrencia:</label>
+                                            <input type="date" id="rec-form-fecha-fin" class="custom-input" style="max-width: 220px;">
+                                        </div>
+
+                                        <div style="margin-top: 10px; display: none;" id="container-form-fin-cantidad">
+                                            <label style="font-size: 11px; font-weight: 500; margin-bottom: 4px; display: block;">Cantidad de repeticiones:</label>
+                                            <input type="number" id="rec-form-cant-repeticiones" class="custom-input" placeholder="Ej. 12" min="1" style="max-width: 220px;">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bottom-action-bar">
+                                <button type="button" class="btn-secondary" onclick="ocultarFormularioOperacion()">Cancelar</button>
+                                <button type="submit" class="btn-primary"><i class="fa-solid fa-paper-plane"></i> Guardar Solicitud</button>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 2. NUEVA VISTA: MANTENIMIENTO DE CONCILIACIÓN BANCARIA -->
+                <div id="view-conciliacion-bancaria" class="view-section">
+                    <h2 class="page-title">Mantenimiento de conciliación</h2>
+                    <p class="page-subtitle">Coteje sus estados de cuenta bancarios con el libro auxiliar de bancos.</p>
+
+                    <div class="card-generic">
+                        <!-- ENCABEZADO Y SELECCIÓN DE CUENTA/CONCILIACIÓN -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+                            <div>
+                                <strong style="font-size: 13px; color: var(--purple-primary);">Cuenta#: 5200016458</strong>
+                                <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
+                                    <label style="font-size: 13px; font-weight: 500;">Seleccione una conciliación:</label>
+                                    <select class="custom-select" style="max-width: 280px; font-weight: 600;">
+                                        <option value="2026-09-30">30/09/2026 - NO TERMINADA</option>
+                                        <option value="2026-08-31">31/08/2026 - TERMINADA</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <button class="btn-sm-icon"><i class="fa-solid fa-list-check"></i> Bitácora</button>
+                                <button class="btn-primary" onclick="showToast('Nueva conciliación iniciada', 'info')"><i class="fa-solid fa-plus"></i> Agregar nueva</button>
+                            </div>
+                        </div>
+
+                        <!-- FILTROS Y CONTROLES DE FECHA / CORRELATIVO -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; background: var(--bg-main); padding: 15px; border-radius: 8px; border: 1px solid var(--card-border);">
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label>Fecha (mm-aaaa):</label>
+                                <div style="display: flex; gap: 8px;">
+                                    <input type="text" class="custom-input" value="09" style="text-align: center; width: 60px;">
+                                    <input type="text" class="custom-input" value="2026" style="text-align: center; width: 80px;">
+                                </div>
+                            </div>
+
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label>Hasta Correlativo <em>(opcional)</em>:</label>
+                                <input type="number" class="custom-input" value="0">
+                            </div>
+
+                            <div class="form-group" style="margin-bottom:0; display: flex; align-items: flex-end;">
+                                <label class="checkbox-inline-label"><input type="checkbox"> Mostrar todos los cheques y depósitos</label>
+                            </div>
+                        </div>
+
+                        <!-- SALDOS INICIAL / FINAL Y DESCRIPCIÓN -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label>Saldo Inicial:</label>
+                                <input type="number" class="custom-input" value="100.00" step="0.01">
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label>Saldo Final:</label>
+                                <input type="number" class="custom-input" value="100.00" step="0.01">
+                            </div>
+                            <div class="form-group" style="margin-bottom:0; grid-column: span 2;">
+                                <label>Descripción / Observaciones:</label>
+                                <input type="text" class="custom-input" value="1000" placeholder="Ingrese concepto...">
+                            </div>
+                        </div>
+
+                        <!-- BOTONES CARGA DE ARCHIVO Y GUARDAR -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <button class="btn-dark" onclick="showToast('Subir archivo Excel/CSV del banco', 'info')"><i class="fa-solid fa-file-upload"></i> Subir archivo del banco</button>
+                                <a href="#" style="font-size: 12px; color: var(--purple-primary); text-decoration: underline;">Descargar archivo de muestra (Cheques)</a>
+                            </div>
+                            <button class="btn-primary" onclick="showToast('¡Conciliación guardada exitosamente!', 'success')"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+                        </div>
+
+                        <!-- RESUMEN DE SALDOS COTEJADOS -->
+                        <div class="conciliacion-summary-bar">
+                            <div><strong>Saldo inicial:</strong> Q 100.00 &nbsp;|&nbsp; <strong>Operaciones conciliadas:</strong> Q 0.00 &nbsp;|&nbsp; <strong style="color: var(--success-color);">Saldo conciliado:</strong> Q 100.00</div>
+                            <div><strong>Operaciones no conciliadas:</strong> <span style="color: var(--danger-color);">Q -100.00</span> &nbsp;|&nbsp; <strong>Saldo contable según conciliación:</strong> <span style="color: var(--danger-color);">Q -100.00</span></div>
+                            <div style="font-size: 14px; font-weight: 700; margin-top: 4px;">Saldo contable real: Q 1,110.00</div>
+                        </div>
+
+                        <!-- TABLA COTEJO DE MOVIMIENTOS -->
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 30px;"><input type="checkbox" id="chk-marcar-todas" onchange="toggleMarcarTodasConcil(this.checked)"></th>
+                                        <th>Fecha</th>
+                                        <th>Tipo</th>
+                                        <th>Doc.</th>
+                                        <th>Motivo / Beneficiario</th>
+                                        <th style="text-align: right;">Créditos</th>
+                                        <th style="text-align: right;">Débitos</th>
+                                        <th style="text-align: right;">CxP</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><input type="checkbox" class="chk-item-concil"></td>
+                                        <td>28/09/2026</td>
+                                        <td><span class="badge badge-info">Cheque</span></td>
+                                        <td><code>1</code></td>
+                                        <td>Nohely</td>
+                                        <td style="text-align: right;">-</td>
+                                        <td style="text-align: right;">-</td>
+                                        <td style="text-align: right; font-weight: 600;">Q 100.00</td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr style="font-weight: 700; background: var(--table-header-bg);">
+                                        <td colspan="5" style="text-align: right;">TOTALES:</td>
+                                        <td style="text-align: right;">Q 0.00</td>
+                                        <td style="text-align: right;">Q 100.00</td>
+                                        <td style="text-align: right;">-</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <!-- NOTA AL PIE Y BOTÓN INFERIOR DE GUARDADO -->
+                        <div style="text-align: center; font-size: 11px; color: var(--info-color); margin-top: 20px; line-height: 1.5;">
+                            Podrá terminar la conciliación cuando el saldo conciliado cuadre con el saldo final bancario y el saldo contable según conciliación cuadre con el saldo contable real.<br>
+                            Podrá imprimir la conciliación al haberla marcado como terminada.
+                        </div>
+
+                        <div style="display: flex; justify-content: center; margin-top: 15px;">
+                            <button class="btn-primary" onclick="showToast('¡Conciliación guardada exitosamente!', 'success')"><i class="fa-solid fa-floppy-disk"></i> Guardar Conciliación</button>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- 3. VISTA: REPORTES BANCARIOS UNIFICADO CON SELECTOR -->
+                <div id="view-centro-reportes" class="view-section">
+                    <h2 class="page-title">Reportes Bancarios</h2>
+                    <p class="page-subtitle">Seleccione el reporte deseado en el listado desplegable para configurar los parámetros y generar el informe.</p>
+
+                    <div class="card-generic">
+                        <div class="form-group" style="max-width: 500px; margin-bottom: 25px;">
+                            <label style="font-weight: 700; color: var(--purple-primary); font-size: 14px;">
+                                <i class="fa-solid fa-folder-tree"></i> Selecciona el Reporte a Consultar:
+                            </label>
+                            <select class="custom-select" id="selector-reporte-actual" onchange="cambiarTipoReporte(this.value)" style="font-size: 14px; font-weight: 600; border-color: var(--purple-primary); padding: 11px;">
+                                <optgroup label="Bancos & Tesorería">
+                                    <option value="movimiento-bancario" selected>Movimiento Bancario</option>
+                                    <option value="flujo-efectivo">Flujo de Efectivo</option>
+                                    <option value="tarjeta-credito">Estado de Cuenta - Tarjeta de Crédito</option>
+                                    <option value="lote-bancos">Lote para Bancos (Dispersión)</option>
+                                    <option value="cheques-circulacion">Cheques en Circulación</option>
+                                    <option value="cheques-empleado">Cheques Emitidos por Empleado</option>
+                                    <option value="reporte-disponibilidad">Reporte de Disponibilidad Bancaria</option>
+                                </optgroup>
+                                <optgroup label="Consultas Generales">
+                                    <option value="busqueda-cheques">Búsqueda de Cheques</option>
+                                    <option value="busqueda-notas">Búsqueda de Notas</option>
+                                    <option value="conteo-documentos">Conteo de Documentos</option>
+                                    <option value="solicitudes-ingresadas">Solicitudes de Cheques Ingresadas</option>
+                                </optgroup>
+                            </select>
+                        </div>
+
+                        <!-- FORMULARIO 1: MOVIMIENTO BANCARIO -->
+                        <div id="form-rpt-movimiento-bancario" class="panel-reporte-dinamico">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label>Elija una cuenta bancaria:</label>
+                                    <select class="custom-select select-cuentas-rpt">
+                                        <option value="">-- Seleccione cuenta --</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label>Cuenta Contable Asociada:</label>
+                                    <select class="custom-select">
+                                        <option value="">-- Todas las cuentas --</option>
+                                        <option value="1101-01">1101-01 Bancos Moneda Nacional</option>
+                                        <option value="1101-02">1101-02 Bancos Moneda Extranjera</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; padding: 10px 15px; background: var(--bg-main); border-radius: 8px; border: 1px dashed var(--card-border);">
+                                <label class="checkbox-inline-label"><input type="checkbox" checked> Mostrar descripción completa</label>
+                                <label class="checkbox-inline-label"><input type="checkbox"> Mostrar Solo Centros de Costo</label>
+                            </div>
+
+                            <div class="tabs-container">
+                                <button class="tab-btn active" id="tab-btn-fecha" onclick="cambiarTabReporte('fecha')"><i class="fa-solid fa-calendar-days"></i> Ver por fecha</button>
+                                <button class="tab-btn" id="tab-btn-correlativo" onclick="cambiarTabReporte('correlativo')"><i class="fa-solid fa-arrow-down-1-9"></i> Ver por correlativo</button>
+                            </div>
+
+                            <div id="tab-content-fecha">
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                                    <div class="form-group"><label>Desde:</label><input type="date" class="custom-input" value="2026-09-01"></div>
+                                    <div class="form-group"><label>Hasta:</label><input type="date" class="custom-input" value="2026-09-30"></div>
+                                    <div class="form-group">
+                                        <label>Ordenamiento:</label>
+                                        <div class="radio-group">
+                                            <label class="radio-item"><input type="radio" name="rpt-orden" value="fecha" checked> Por fecha</label>
+                                            <label class="radio-item"><input type="radio" name="rpt-orden" value="documento"> Por documento</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="tab-content-correlativo" style="display: none;">
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                                    <div class="form-group"><label>No. Inicial:</label><input type="number" class="custom-input" placeholder="Ej. 1001"></div>
+                                    <div class="form-group"><label>No. Final:</label><input type="number" class="custom-input" placeholder="Ej. 1050"></div>
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom: 20px;">
+                                <label style="font-weight: 600; font-size: 13px; display: block; margin-bottom: 8px;">Incluir Documentos:</label>
+                                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                                    <label class="checkbox-inline-label"><input type="checkbox" checked> Cheques</label>
+                                    <label class="checkbox-inline-label"><input type="checkbox" checked> Notas de Débito</label>
+                                    <label class="checkbox-inline-label"><input type="checkbox" checked> Notas de Crédito</label>
+                                    <label class="checkbox-inline-label"><input type="checkbox" checked> Depósitos</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- FORMULARIO 2: FLUJO DE EFECTIVO -->
+                        <div id="form-rpt-flujo-efectivo" class="panel-reporte-dinamico" style="display: none;">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                                <div class="form-group"><label>Período Desde:</label><input type="date" class="custom-input" value="2026-01-01"></div>
+                                <div class="form-group"><label>Período Hasta:</label><input type="date" class="custom-input" value="2026-09-30"></div>
+                                <div class="form-group">
+                                    <label>Nivel de Detalle:</label>
+                                    <select class="custom-select">
+                                        <option value="resumido">Resumido por Categorías</option>
+                                        <option value="detallado" selected>Detallado por Cuenta y Movimiento</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- FORMULARIO 3: ESTADO DE CUENTA TC -->
+                        <div id="form-rpt-tarjeta-credito" class="panel-reporte-dinamico" style="display: none;">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                                <div class="form-group">
+                                    <label>Tarjeta de Crédito / Tarjetahabiente:</label>
+                                    <select class="custom-select">
+                                        <option value="">-- Seleccionar Tarjeta --</option>
+                                        <option value="1">VISA Corp **** 4589 - Gerencia</option>
+                                        <option value="2">MasterCard Corp **** 8821 - Compras</option>
+                                    </select>
+                                </div>
+                                <div class="form-group"><label>Fecha Corte:</label><input type="date" class="custom-input" value="2026-09-15"></div>
+                                <div class="form-group" style="align-self: center;">
+                                    <label class="checkbox-inline-label"><input type="checkbox" checked> Incluir consumos no facturados</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- FORMULARIO 4: LOTE PARA BANCOS -->
+                        <div id="form-rpt-lote-bancos" class="panel-reporte-dinamico" style="display: none;">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                                <div class="form-group">
+                                    <label>Formato de Banco:</label>
+                                    <select class="custom-select">
+                                        <option value="BI">Banco Industrial (BI Banking TXT)</option>
+                                        <option value="BAM">BAMNet Empresarial</option>
+                                        <option value="GYT">G&T Continental Planillas</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Tipo de Lote:</label>
+                                    <select class="custom-select">
+                                        <option value="proveedores">Pago a Proveedores</option>
+                                        <option value="nomina">Nómina de Empleados</option>
+                                    </select>
+                                </div>
+                                <div class="form-group"><label>Fecha de Proceso:</label><input type="date" class="custom-input" value="2026-09-28"></div>
+                            </div>
+                        </div>
+
+                        <!-- FORMULARIO 5: GENERAL / OTROS -->
+                        <div id="form-rpt-generico" class="panel-reporte-dinamico" style="display: none;">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                                <div class="form-group"><label>Rango Fecha Desde:</label><input type="date" class="custom-input" value="2026-09-01"></div>
+                                <div class="form-group"><label>Rango Fecha Hasta:</label><input type="date" class="custom-input" value="2026-09-30"></div>
+                                <div class="form-group">
+                                    <label>Cuenta Bancaria:</label>
+                                    <select class="custom-select select-cuentas-rpt">
+                                        <option value="">-- Todas las cuentas --</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- BARRA UNIFICADA DE BOTONES -->
+                        <div style="display: flex; justify-content: flex-end; gap: 12px; flex-wrap: wrap; border-top: 1px solid var(--card-border); padding-top: 20px;">
+                            <button type="button" class="btn-primary" onclick="generarReporteGenerico()"><i class="fa-solid fa-magnifying-glass"></i> Consultar Reporte</button>
+                            <button type="button" class="btn-secondary" onclick="window.print()"><i class="fa-solid fa-print"></i> Imprimir</button>
+                            <button type="button" class="btn-success" onclick="showToast('Exportando reporte a Excel...', 'info')"><i class="fa-solid fa-file-excel"></i> Descargar Excel</button>
+                        </div>
+
+                    </div>
+
+                    <!-- PREVISUALIZACIÓN DE RESULTADOS UNIFICADA -->
+                    <div class="card-generic" id="card-resultado-reporte" style="display: none;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 style="font-size: 15px; color: var(--purple-primary);" id="titulo-previsualizacion"><i class="fa-solid fa-table-list"></i> Previsualización de Datos</h3>
+                            <span class="badge badge-info" id="badge-total-registros">0 Registros</span>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead id="tabla-rpt-header"></thead>
+                                <tbody id="tabla-rpt-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- 4. MANTENIMIENTO DE CUENTAS BANCARIAS & CHEQUERAS -->
+                <div id="view-cuentas-bancarias" class="view-section">
+                    <h2 class="page-title">Mantenimiento de Cuentas Bancarias & Chequeras</h2>
+                    <p class="page-subtitle">Crea o edita cuentas bancarias, gestiona sus cheques cargados y consulta el rango consumido en tiempo real.</p>
+
+                    <div class="split-grid">
+                        
+                        <div class="card-generic">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <h3 style="font-size: 15px; color: var(--purple-primary);" id="form-titulo"><i class="fa-solid fa-plus-circle"></i> Datos de Cuenta y Chequera</h3>
+                                <button type="button" class="btn-secondary" onclick="limpiarFormCuenta()" style="padding: 4px 10px; font-size: 11px;">Limpiar / Nuevo</button>
+                            </div>
+
+                            <form id="form-mantenimiento-cuentas" onsubmit="guardarCuentaBancaria(event)">
+                                <input type="hidden" id="edit-index" value="-1">
+
+                                <div class="form-group">
+                                    <label>Banco:</label>
+                                    <div style="display: flex; gap: 8px;">
+                                        <select class="custom-select" id="cuenta-banco-select" required>
+                                            <option value="">-- Seleccionar Banco --</option>
+                                            <option value="Banco Industrial">Banco Industrial</option>
+                                            <option value="BAM">BAM</option>
+                                            <option value="G&T Continental">G&T Continental</option>
+                                        </select>
+                                        <button type="button" class="btn-sm-icon" onclick="openModalExpressBanco()" title="Agregar nuevo banco si no existe en la lista">
+                                            <i class="fa-solid fa-plus"></i> Nuevo
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>No. de cuenta:</label>
+                                    <input type="text" id="cuenta-numero" class="custom-input" placeholder="Ej. 101-25596-33" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Nombre del Titular:</label>
+                                    <input type="text" id="cuenta-titular" class="custom-input" placeholder="Ej. SUMINISTROS PEDAGOGICOS" required>
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
+                                    <div class="form-group">
+                                        <label>Tipo de cuenta:</label>
+                                        <select class="custom-select" id="cuenta-tipo">
+                                            <option value="Monetario">Monetario</option>
+                                            <option value="Ahorro">Ahorro</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Alias:</label>
+                                        <input type="text" id="cuenta-alias" class="custom-input" placeholder="Ej. Caja Quetzales">
+                                    </div>
+                                </div>
+
+                                <div style="border-top: 1px dashed var(--card-border); padding-top: 15px; margin-top: 10px;">
+                                    <label style="font-weight: 700; color: var(--purple-primary); font-size: 13px; margin-bottom: 10px; display: block;">
+                                        <i class="fa-solid fa-money-check-dollar"></i> Carga Inicial de Formas en Blanco
+                                    </label>
+
+                                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
+                                        <div class="form-group">
+                                            <label>Primer No. de Cheque:</label>
+                                            <input type="number" id="cuenta-primer-cheque" class="custom-input" placeholder="Ej. 1001" required>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Cantidad a Ingresar:</label>
+                                            <input type="number" id="cuenta-cant-cheques" class="custom-input" placeholder="Ej. 50" min="1" required>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Monto máximo a emitir en cheque:</label>
+                                    <input type="number" id="cuenta-monto-max" class="custom-input" step="0.01" placeholder="0.00">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Cuenta Contable Asociada:</label>
+                                    <select class="custom-select" id="cuenta-contable">
+                                        <option value="">Elija cuenta contable...</option>
+                                        <option value="1101-01 Bancos Moneda Nacional">1101-01 Bancos Moneda Nacional</option>
+                                        <option value="1101-02 Bancos Moneda Extranjera">1101-02 Bancos Moneda Extranjera</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="checkbox-inline-label">
+                                        <input type="checkbox" id="cuenta-activa" checked> Habilitar esta cuenta (Activa)
+                                    </label>
+                                </div>
+
+                                <div style="margin-top: 20px;">
+                                    <button type="submit" id="btn-submit-cuenta" class="btn-primary" style="width: 100%;"><i class="fa-solid fa-save"></i> Guardar Cuenta y Chequera</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="card-generic">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <h3 style="font-size: 15px; color: var(--purple-primary);"><i class="fa-solid fa-list-check"></i> Cuentas y Rango de Cheques Usados</h3>
+                                <span style="font-size: 11px; color: var(--text-muted);">Sincronizado</span>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Banco / Cuenta</th>
+                                            <th>Rango de Cheques</th>
+                                            <th>Consumo</th>
+                                            <th>Estado / Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabla-reporte-cuentas-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- VISTAS SECUNDARIAS -->
+                <div id="view-facturacion" class="view-section">
+                    <h2 class="page-title">Facturación</h2>
+                    <p class="page-subtitle">Emisión y control de facturas electrónicas (FEL).</p>
+                    <div class="card-generic">
+                        <button class="btn-primary" style="margin-bottom: 15px;" onclick="showToast('Nueva factura iniciada')">+ Nueva Factura</button>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead><tr><th>No. Factura</th><th>Cliente</th><th>Fecha</th><th>Monto</th><th>Estado</th></tr></thead>
+                                <tbody><tr><td>FEL-89521</td><td>Distribuidora La Central, S.A.</td><td>14/07/2026</td><td>Q 12,450.00</td><td><span class="badge badge-success">Emitida</span></td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-clientes" class="view-section">
+                    <h2 class="page-title">Directorio de Clientes</h2>
+                    <p class="page-subtitle">Gestión de datos de clientes y NIT.</p>
+                    <div class="card-generic">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead><tr><th>NIT</th><th>Nombre / Razón Social</th><th>Teléfono</th><th>Correo</th></tr></thead>
+                                <tbody><tr><td>8954215-9</td><td>Distribuidora La Central, S.A.</td><td>+502 2345 6789</td><td>compras@lacentral.com.gt</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-cxc" class="view-section">
+                    <h2 class="page-title">Cuentas por Cobrar</h2>
+                    <p class="page-subtitle">Control de saldos pendientes de clientes.</p>
+                    <div class="card-generic">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead><tr><th>Cliente</th><th>Facturas Pendientes</th><th>Total Deuda</th><th>Estado</th></tr></thead>
+                                <tbody><tr><td>Distribuidora La Central, S.A.</td><td>2</td><td>Q 24,900.00</td><td><span class="badge badge-warning">Pendiente</span></td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-cxp" class="view-section">
+                    <h2 class="page-title">Cuentas por Pagar</h2>
+                    <p class="page-subtitle">Gestión de compromisos y pago a proveedores.</p>
+                    <div class="card-generic">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead><tr><th>Proveedor</th><th>No. Factura</th><th>Vencimiento</th><th>Monto</th></tr></thead>
+                                <tbody><tr><td>Suministros Globales, S.A.</td><td>F-10258</td><td>30/07/2026</td><td>$ 1,500.00</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- JAVASCRIPT INTEGRADO -->
+    <script>
+        /* CATÁLOGO BASE DE CUENTAS CONTABLES PARA SELECCIÓN LIBRE */
+        const catalogoCuentasContables = [
+            "1101-01 Bancos Moneda Nacional",
+            "1101-02 Bancos Moneda Extranjera",
+            "1105-01 Anticipo a Proveedores",
+            "2101-01 Cuentas por Pagar Proveedores",
+            "5101-01 Gastos de Administración - Papelería",
+            "5101-02 Gastos de Mantenimiento y Reparación",
+            "5102-01 Gastos de Ventas"
+        ];
+
+        /* MOCK DATA CUENTAS BANCARIAS */
+        let listaCuentasBancarias = [
+            {
+                banco: "Banco Industrial",
+                numero: "101-25596-33",
+                titular: "SUMINISTROS PEDAGOGICOS",
+                tipo: "Monetario",
+                alias: "Caja Quetzales",
+                montoMax: "50000.00",
+                cuentaContable: "1101-01 Bancos Moneda Nacional",
+                primerCheque: 1001,
+                cantCheques: 50,
+                chequesUsados: 3,
+                activo: true
+            },
+            {
+                banco: "BAM",
+                numero: "30-401524-1",
+                titular: "SUMINISTROS PEDAGOGICOS",
+                tipo: "Monetario",
+                alias: "Cuenta Dólares",
+                montoMax: "10000.00",
+                cuentaContable: "1101-02 Bancos Moneda Extranjera",
+                primerCheque: 501,
+                cantCheques: 25,
+                chequesUsados: 0,
+                activo: true
+            }
+        ];
+
+        /* MOCK DATA OPERACIONES BANCARIAS CON DATOS CONTABLES Y ENTREGA */
+        let listaOperacionesBancarias = [
+            {
+                id: 1,
+                fechaIso: "2026-07-15",
+                fechaFormato: "15/07/2026",
+                tipo: "Emisión de cheque",
+                numCheque: 1003,
+                cuentaIndex: 0,
+                beneficiario: "Suministros Globales, S.A.",
+                monto: 2500.00,
+                moneda: "GTQ",
+                tipoCambio: 1,
+                departamento: "Administración",
+                descripcion: "Pago de papelería e insumos",
+                estado: "Aprobado",
+                polizaContable: "POL-2026-0042",
+                cuentaDebeSel: "2101-01 Cuentas por Pagar Proveedores",
+                cuentaHaberSel: "1101-01 Bancos Moneda Nacional",
+                entregado: true,
+                entregaDetalle: { recibidoPor: "Carlos Mendoza", dpi: "2410 89521 0101", fecha: "16/07/2026" },
+                recurrente: false
+            },
+            {
+                id: 2,
+                fechaIso: "2026-07-14",
+                fechaFormato: "14/07/2026",
+                tipo: "Transferencia bancaria",
+                numCheque: null,
+                cuentaIndex: 0,
+                beneficiario: "Transferencia entre Cuentas",
+                monto: 1200.00,
+                moneda: "GTQ",
+                tipoCambio: 1,
+                departamento: "Ventas",
+                descripcion: "Transferencia para pago de servicios",
+                estado: "Aprobado",
+                polizaContable: "POL-2026-0039",
+                cuentaDebeSel: "2101-01 Cuentas por Pagar Proveedores",
+                cuentaHaberSel: "1101-01 Bancos Moneda Nacional",
+                entregado: false,
+                entregaDetalle: null,
+                recurrente: false
+            }
+        ];
+
+        let idOperacionAprobarActual = null;
+        let correlativoPoliza = 43;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const hoy = new Date().toISOString().split('T')[0];
+            document.getElementById('op-fecha-input').value = hoy;
+            document.getElementById('rec-form-fecha-inicio').value = hoy;
+            
+            sincronizarSelectFiltroCuentas();
+            renderizarTablaOperaciones(listaOperacionesBancarias);
+            renderizarReporteCuentas();
+            sincronizarSelectOperaciones();
+            sincronizarSelectsReportes();
+        });
+
+        function toggleMobileMenu() {
+            document.getElementById('sidebar').classList.toggle('mobile-open');
+        }
+
+        /* LÓGICA MARCAR/DESMARCAR TODAS EN CONCILIACIÓN */
+        function toggleMarcarTodasConcil(checked) {
+            document.querySelectorAll('.chk-item-concil').forEach(chk => chk.checked = checked);
+        }
+
+        /* LÓGICA DE VISIBILIDAD DE CAMPOS DINÁMICOS SEGÚN TIPO DE OPERACIÓN */
+        function evaluarTipoOperacionSeleccionado() {
+            const val = document.getElementById('op-tipo-select').value;
+            const blockNotas = document.getElementById('block-extension-mantenimiento-notas');
+            const blockTransf = document.getElementById('block-extension-transferencias');
+            const blockBeneficiario = document.getElementById('block-beneficiario-clasificacion');
+            const containerCuentaGen = document.getElementById('container-cuenta-general');
+            const containerTcGen = document.getElementById('container-tc-general');
+
+            if (val === 'Mantenimiento de depósitos y notas de crédito') {
+                blockNotas.style.display = 'block';
+                blockTransf.style.display = 'none';
+                blockBeneficiario.style.display = 'block';
+                containerCuentaGen.style.display = 'block';
+                containerTcGen.style.display = 'block';
+            } else if (val === 'Transferencia bancaria') {
+                blockNotas.style.display = 'none';
+                blockTransf.style.display = 'block';
+                blockBeneficiario.style.display = 'none';
+                containerCuentaGen.style.display = 'none';
+                containerTcGen.style.display = 'none';
+            } else { // Emisión de cheque
+                blockNotas.style.display = 'none';
+                blockTransf.style.display = 'none';
+                blockBeneficiario.style.display = 'block';
+                containerCuentaGen.style.display = 'block';
+                containerTcGen.style.display = 'block';
+            }
+        }
+
+        /* LÓGICA RECURRENCIA EN FORMULARIO */
+        function toggleFormularioRecurrencia(activado) {
+            const body = document.getElementById('recurrencia-body');
+            const lbl = document.getElementById('lbl-estado-recurrencia');
+            if (activado) {
+                body.classList.add('active');
+                lbl.innerText = 'Sí';
+            } else {
+                body.classList.remove('active');
+                lbl.innerText = 'No';
+            }
+        }
+
+        function toggleFormFinRecurrencia() {
+            const radioFecha = document.querySelector('input[name="tipo-fin-form-recurrencia"][value="fecha"]').checked;
+            document.getElementById('container-form-fin-fecha').style.display = radioFecha ? 'block' : 'none';
+            document.getElementById('container-form-fin-cantidad').style.display = radioFecha ? 'none' : 'block';
+        }
+
+        /* LÓGICA DEL CENTRO DE REPORTES DIVERSIFICADO */
+        function cambiarTipoReporte(val) {
+            document.querySelectorAll('.panel-reporte-dinamico').forEach(p => p.style.display = 'none');
+
+            if (val === 'movimiento-bancario') {
+                document.getElementById('form-rpt-movimiento-bancario').style.display = 'block';
+            } else if (val === 'flujo-efectivo') {
+                document.getElementById('form-rpt-flujo-efectivo').style.display = 'block';
+            } else if (val === 'tarjeta-credito') {
+                document.getElementById('form-rpt-tarjeta-credito').style.display = 'block';
+            } else if (val === 'lote-bancos') {
+                document.getElementById('form-rpt-lote-bancos').style.display = 'block';
+            } else {
+                document.getElementById('form-rpt-generico').style.display = 'block';
+            }
+            
+            document.getElementById('card-resultado-reporte').style.display = 'none';
+        }
+
+        function cambiarTabReporte(tab) {
+            const btnFecha = document.getElementById('tab-btn-fecha');
+            const btnCorrelativo = document.getElementById('tab-btn-correlativo');
+            const contentFecha = document.getElementById('tab-content-fecha');
+            const contentCorrelativo = document.getElementById('tab-content-correlativo');
+
+            if (tab === 'fecha') {
+                btnFecha.classList.add('active');
+                btnCorrelativo.classList.remove('active');
+                contentFecha.style.display = 'block';
+                contentCorrelativo.style.display = 'none';
+            } else {
+                btnCorrelativo.classList.add('active');
+                btnFecha.classList.remove('active');
+                contentCorrelativo.style.display = 'block';
+                contentFecha.style.display = 'none';
+            }
+        }
+
+        function generarReporteGenerico() {
+            const selectVal = document.getElementById('selector-reporte-actual').value;
+            const selectText = document.getElementById('selector-reporte-actual').options[document.getElementById('selector-reporte-actual').selectedIndex].text;
+            
+            const cardRes = document.getElementById('card-resultado-reporte');
+            const header = document.getElementById('tabla-rpt-header');
+            const body = document.getElementById('tabla-rpt-body');
+
+            document.getElementById('titulo-previsualizacion').innerHTML = `<i class="fa-solid fa-table-list"></i> Previsualización: ${selectText}`;
+
+            if (selectVal === 'movimiento-bancario') {
+                header.innerHTML = `<tr><th>Fecha</th><th>No. Doc</th><th>Tipo</th><th>Concepto / Beneficiario</th><th style="text-align:right;">Cargos (Debe)</th><th style="text-align:right;">Abonos (Haber)</th><th style="text-align:right;">Saldo</th></tr>`;
+                body.innerHTML = `
+                    <tr style="background: rgba(96,92,168,0.05); font-weight:600;"><td>01/09/2026</td><td>-</td><td>Saldo Inicial</td><td>SALDO INICIAL BANCO INDUSTRIAL</td><td style="text-align:right;">-</td><td style="text-align:right;">-</td><td style="text-align:right; color:var(--purple-primary);">Q 25,000.00</td></tr>
+                    <tr><td>05/09/2026</td><td><code>DEP-8951</code></td><td>Depósitos</td><td>Cobro Factura #10258</td><td style="text-align:right; color:var(--success-color);">Q 15,400.00</td><td style="text-align:right;">-</td><td style="text-align:right;">Q 40,400.00</td></tr>
+                    <tr><td>12/09/2026</td><td><code>CH-1001</code></td><td>Cheque</td><td>Pago Suministros Pedagógicos</td><td style="text-align:right;">-</td><td style="text-align:right; color:var(--danger-color);">Q 3,200.00</td><td style="text-align:right;">Q 37,200.00</td></tr>
+                `;
+                document.getElementById('badge-total-registros').innerText = '2 Movimientos';
+            } else if (selectVal === 'flujo-efectivo') {
+                header.innerHTML = `<tr><th>Categoría</th><th>Concepto / Rubro</th><th style="text-align:right;">Ingresos</th><th style="text-align:right;">Egresos</th><th style="text-align:right;">Flujo Neto</th></tr>`;
+                body.innerHTML = `
+                    <tr><td>Operativo</td><td>Ventas de contado y cobros CxC</td><td style="text-align:right; color:var(--success-color);">Q 125,000.00</td><td style="text-align:right;">-</td><td style="text-align:right;">Q 125,000.00</td></tr>
+                    <tr><td>Operativo</td><td>Pago a proveedores e insumos</td><td style="text-align:right;">-</td><td style="text-align:right; color:var(--danger-color);">Q 45,000.00</td><td style="text-align:right;">-Q 45,000.00</td></tr>
+                    <tr style="font-weight:700; background:rgba(16,185,129,0.1);"><td>TOTAL NETO</td><td>Flujo de Efectivo del Período</td><td style="text-align:right;">Q 125,000.00</td><td style="text-align:right;">Q 45,000.00</td><td style="text-align:right; color:var(--success-color);">Q 80,000.00</td></tr>
+                `;
+                document.getElementById('badge-total-registros').innerText = 'Resumen Generado';
+            } else {
+                header.innerHTML = `<tr><th>Fecha</th><th>Documento</th><th>Beneficiario / Concepto</th><th>Estado</th><th style="text-align:right;">Monto Total</th></tr>`;
+                body.innerHTML = `
+                    <tr><td>15/09/2026</td><td><code>CH-1003</code></td><td>Suministros Globales, S.A.</td><td><span class="badge badge-success">En Circulación</span></td><td style="text-align:right; font-weight:600;">Q 2,500.00</td></tr>
+                    <tr><td>14/09/2026</td><td><code>CH-1002</code></td><td>Importaciones Homeland</td><td><span class="badge badge-success">En Circulación</span></td><td style="text-align:right; font-weight:600;">Q 1,200.00</td></tr>
+                `;
+                document.getElementById('badge-total-registros').innerText = '2 Registros';
+            }
+
+            cardRes.style.display = 'block';
+            cardRes.scrollIntoView({ behavior: 'smooth' });
+            showToast(`Reporte "${selectText}" generado exitosamente`);
+        }
+
+        function sincronizarSelectsReportes() {
+            document.querySelectorAll('.select-cuentas-rpt').forEach(sel => {
+                sel.innerHTML = '<option value="" selected>-- Seleccione cuenta --</option>';
+                listaCuentasBancarias.forEach((c, idx) => {
+                    const opt = document.createElement('option');
+                    opt.value = idx;
+                    opt.textContent = `${c.banco} - ${c.numero} (${c.titular})`;
+                    sel.appendChild(opt);
+                });
+            });
+        }
+
+        /* FILTROS DE BÚSQUEDA OPERACIONES CON SOPORTE PARA CUENTA BANCARIA */
+        function sincronizarSelectFiltroCuentas() {
+            const selectFiltroCuenta = document.getElementById('filtro-cuenta');
+            if (!selectFiltroCuenta) return;
+
+            selectFiltroCuenta.innerHTML = '<option value="">-- Todas las cuentas --</option>';
+            listaCuentasBancarias.forEach((c, index) => {
+                const opt = document.createElement('option');
+                opt.value = index;
+                opt.textContent = `${c.banco} - ${c.numero}`;
+                selectFiltroCuenta.appendChild(opt);
+            });
+        }
+
+        function aplicarFiltros() {
+            const tipo = document.getElementById('filtro-tipo').value;
+            const cuentaVal = document.getElementById('filtro-cuenta').value;
+            const estado = document.getElementById('filtro-estado').value;
+            const proveedor = document.getElementById('filtro-proveedor').value.toLowerCase().trim();
+            const fechaDesde = document.getElementById('filtro-fecha-desde').value;
+            const fechaHasta = document.getElementById('filtro-fecha-hasta').value;
+
+            const resultado = listaOperacionesBancarias.filter(op => {
+                const coincideTipo = tipo === "" || op.tipo === tipo;
+                const coincideCuenta = cuentaVal === "" || op.cuentaIndex === parseInt(cuentaVal);
+                const coincideEstado = estado === "" || op.estado === estado;
+                const coincideProveedor = proveedor === "" || op.beneficiario.toLowerCase().includes(proveedor);
+                
+                let coincideFecha = true;
+                if (fechaDesde) coincideFecha = coincideFecha && (op.fechaIso >= fechaDesde);
+                if (fechaHasta) coincideFecha = coincideFecha && (op.fechaIso <= fechaHasta);
+
+                return coincideTipo && coincideCuenta && coincideEstado && coincideProveedor && coincideFecha;
+            });
+
+            renderizarTablaOperaciones(resultado);
+        }
+
+        function limpiarFiltros() {
+            document.getElementById('filtro-tipo').value = "";
+            document.getElementById('filtro-cuenta').value = "";
+            document.getElementById('filtro-estado').value = "";
+            document.getElementById('filtro-proveedor').value = "";
+            document.getElementById('filtro-fecha-desde').value = "";
+            document.getElementById('filtro-fecha-hasta').value = "";
+            renderizarTablaOperaciones(listaOperacionesBancarias);
+        }
+
+        /* RENDER TABLA OPERACIONES CON ESTADOS EXPANDIDOS Y BADGE RECURRENTE */
+        function renderizarTablaOperaciones(lista) {
+            const tbody = document.getElementById('tabla-operaciones-body');
+            if (lista.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: var(--text-muted);">No se encontraron registros con los filtros aplicados.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            lista.forEach((op) => {
+                const cuentaObj = listaCuentasBancarias[op.cuentaIndex] || { banco: 'Banco', numero: 'N/A' };
+                const simbolo = op.moneda === 'USD' ? '$' : 'Q';
+
+                let badgeEstado = '';
+                if (op.estado === 'Pendiente') badgeEstado = '<span class="badge badge-warning"><i class="fa-solid fa-clock"></i> Pendiente</span>';
+                else if (op.estado === 'Aprobado') {
+                    if (op.entregado) {
+                        badgeEstado = '<span class="badge badge-info"><i class="fa-solid fa-handshake"></i> Entregado</span>';
+                    } else {
+                        badgeEstado = '<span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Contabilizado</span>';
+                    }
+                }
+                else if (op.estado === 'Rechazado') badgeEstado = '<span class="badge badge-danger"><i class="fa-solid fa-circle-xmark"></i> Rechazado</span>';
+                else badgeEstado = '<span class="badge badge-dark"><i class="fa-solid fa-ban"></i> Anulado</span>';
+
+                const badgeRecurrente = op.recurrente ? `<br><small style="color:var(--purple-primary); font-weight:600;"><i class="fa-solid fa-arrows-rotate"></i> Recurrente (Cada ${op.configRecurrencia.intervalo} ${op.configRecurrencia.frecuencia})</small>` : '';
+
+                const textoCheque = op.tipo === "Emisión de cheque" && op.numCheque ? ` (Cheque #${op.numCheque})` : '';
+
+                tbody.innerHTML += `<tr style="${op.estado === 'Anulado' ? 'opacity: 0.6; text-decoration: line-through;' : ''}">
+                    <td><strong>${op.fechaFormato}</strong></td>
+                    <td><span class="badge badge-info">${op.tipo}${textoCheque}</span></td>
+                    <td><code>${cuentaObj.banco} - ${cuentaObj.numero}</code></td>
+                    <td>${op.beneficiario}${badgeRecurrente}<br><small style="color:var(--text-muted);">${op.descripcion || ''}</small></td>
+                    <td><strong>${simbolo} ${parseFloat(op.monto).toLocaleString('en-US', {minimumFractionDigits: 2})}</strong></td>
+                    <td>${badgeEstado}</td>
+                    <td>
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                            <button class="btn-action-tbl" onclick="abrirModalAprobar(${op.id})" title="Ver detalles, contabilización y gestión">
+                                <i class="fa-solid fa-eye"></i> Revisar
+                            </button>
+                            ${op.estado !== 'Anulado' ? `<button class="btn-action-tbl" onclick="mostrarFormularioOperacion(${op.id})" title="Editar solicitud"><i class="fa-solid fa-pen-to-square"></i> Editar</button>` : ''}
+                        </div>
+                    </td>
+                </tr>`;
+            });
+        }
+
+        /* MODAL DE REVISIÓN CON SOPORTE PARA SELECCIÓN DE CUENTAS, REIMPRESIÓN Y REEMISIÓN DE ANULADOS */
+        function abrirModalAprobar(id) {
+            idOperacionAprobarActual = id;
+            const op = listaOperacionesBancarias.find(o => o.id === id);
+            if (!op) return;
+
+            cancelarEntrega();
+
+            const cuentaObj = listaCuentasBancarias[op.cuentaIndex] || { banco: 'Banco', numero: 'N/A', cuentaContable: '1101-01 Bancos Moneda Nacional' };
+            const simbolo = op.moneda === 'USD' ? '$' : 'Q';
+            const numChequeInfo = op.numCheque ? ` (Cheque #${op.numCheque})` : '';
+
+            // Determinación de valores por defecto
+            let cuentaDebeSugerida = op.cuentaDebeSel || (op.esAnticipo ? "1105-01 Anticipo a Proveedores" : "2101-01 Cuentas por Pagar Proveedores");
+            let cuentaHaberSugerida = op.cuentaHaberSel || (cuentaObj.cuentaContable || "1101-01 Bancos Moneda Nacional");
+
+            if (op.tipo === "Mantenimiento de depósitos y notas de crédito" && !op.cuentaDebeSel) {
+                let temp = cuentaDebeSugerida;
+                cuentaDebeSugerida = cuentaHaberSugerida;
+                cuentaHaberSugerida = temp;
+            }
+
+            const polizaNum = op.polizaContable || `POL-2026-00${correlativoPoliza}`;
+
+            // Opciones HTML para los selects
+            let optionsDebe = '';
+            let optionsHaber = '';
+
+            catalogoCuentasContables.forEach(cta => {
+                optionsDebe += `<option value="${cta}" ${cta === cuentaDebeSugerida ? 'selected' : ''}>${cta}</option>`;
+                optionsHaber += `<option value="${cta}" ${cta === cuentaHaberSugerida ? 'selected' : ''}>${cta}</option>`;
+            });
+
+            const editable = (op.estado === 'Pendiente');
+
+            let htmlDetalles = `
+                <p><strong>Tipo de Operación:</strong> ${op.tipo}${numChequeInfo}</p>
+                <p><strong>Fecha Solicitada:</strong> ${op.fechaFormato}</p>
+                <p><strong>Cuenta Bancaria:</strong> ${cuentaObj.banco} (${cuentaObj.numero})</p>
+                <p><strong>Beneficiario / Proveedor:</strong> ${op.beneficiario}</p>
+                <p><strong>Monto:</strong> <span style="font-size: 15px; color: var(--purple-primary); font-weight: 700;">${simbolo} ${parseFloat(op.monto).toLocaleString('en-US', {minimumFractionDigits: 2})}</span></p>
+                <p><strong>Justificación:</strong> <em>"${op.descripcion || 'Sin descripción'}"</em></p>
+                ${op.recurrente ? `<p style="color:var(--purple-primary); font-weight:600;"><i class="fa-solid fa-arrows-rotate"></i> Programada para repetirse cada ${op.configRecurrencia.intervalo} ${op.configRecurrencia.frecuencia}</p>` : ''}
+                <p><strong>Estado Actual:</strong> <strong>${op.estado}</strong></p>
+
+                <!-- CAJA DE SELECCIÓN Y CONTABILIZACIÓN -->
+                <div class="accounting-preview-box">
+                    <h4><i class="fa-solid fa-book-journal-whills"></i> ${op.estado === 'Pendiente' ? 'Selección de Cuentas para Asiento Contable:' : (op.estado === 'Anulado' ? 'Asiento Contable Revertido/Anulado:' : 'Asiento Contable Generado (' + polizaNum + '):')}</h4>
+                    <table style="width: 100%; font-size: 11px; border-collapse: collapse; margin-top: 5px;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--card-border); text-align: left;">
+                                <th style="width: 65%;">Cuenta Contable</th>
+                                <th style="text-align: right; width: 17.5%;">Debe</th>
+                                <th style="text-align: right; width: 17.5%;">Haber</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding-top: 4px; padding-bottom: 4px;">
+                                    ${editable ? `<select id="sel-cuenta-debe" class="select-accounting-inline">${optionsDebe}</select>` : `<span>${cuentaDebeSugerida}</span>`}
+                                </td>
+                                <td style="text-align: right; color: var(--success-color); font-weight: 600;">${simbolo} ${parseFloat(op.monto).toFixed(2)}</td>
+                                <td style="text-align: right;">-</td>
+                            </tr>
+                            <tr>
+                                <td style="padding-top: 4px; padding-bottom: 4px;">
+                                    ${editable ? `<select id="sel-cuenta-haber" class="select-accounting-inline">${optionsHaber}</select>` : `<span>${cuentaHaberSugerida}</span>`}
+                                </td>
+                                <td style="text-align: right;">-</td>
+                                <td style="text-align: right; color: var(--danger-color); font-weight: 600;">${simbolo} ${parseFloat(op.monto).toFixed(2)}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            if (op.entregado && op.entregaDetalle) {
+                htmlDetalles += `
+                    <div style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid var(--success-color); padding: 8px 12px; border-radius: 4px; font-size: 12px; margin-bottom: 10px;">
+                        <strong><i class="fa-solid fa-circle-check"></i> Documento Entregado:</strong> Recibido por <strong>${op.entregaDetalle.recibidoPor}</strong> (DPI: ${op.entregaDetalle.dpi}) el ${op.entregaDetalle.fecha}.
+                    </div>
+                `;
+            }
+
+            document.getElementById('detalle-solicitud-body').innerHTML = htmlDetalles;
+
+            const footerBtns = document.getElementById('modal-acciones-footer');
+            footerBtns.innerHTML = '<button type="button" class="btn-secondary" onclick="closeModalAprobar()">Cerrar</button>';
+
+            if (op.estado === 'Pendiente') {
+                footerBtns.innerHTML += `
+                    <button type="button" class="btn-danger" onclick="procesarAccion('Rechazado')"><i class="fa-solid fa-xmark"></i> Rechazar</button>
+                    <button type="button" class="btn-success" onclick="procesarAccion('Aprobado')"><i class="fa-solid fa-check"></i> Aprobar y Contabilizar</button>
+                `;
+            } else if (op.estado === 'Aprobado') {
+                footerBtns.innerHTML += `
+                    <button type="button" class="btn-dark" onclick="imprimirChequeComprobante()"><i class="fa-solid fa-print"></i> Reimprimir Cheque/Comprobante</button>
+                    ${!op.entregado ? `<button type="button" class="btn-primary" onclick="mostrarFormEntrega()"><i class="fa-solid fa-handshake"></i> Registrar Entrega</button>` : ''}
+                    <button type="button" class="btn-danger" style="margin-left:auto;" onclick="procesarAccion('Anulado')"><i class="fa-solid fa-ban"></i> Anular</button>
+                `;
+            } else if (op.estado === 'Anulado') {
+                footerBtns.innerHTML += `
+                    <button type="button" class="btn-warning" onclick="reemitirOperacionAnulada()"><i class="fa-solid fa-rotate-right"></i> Reemitir / Reactivar Solicitud</button>
+                `;
+            }
+
+            document.getElementById('modal-aprobar-solicitud').classList.add('active');
+        }
+
+        function closeModalAprobar() {
+            document.getElementById('modal-aprobar-solicitud').classList.remove('active');
+            idOperacionAprobarActual = null;
+        }
+
+        function procesarAccion(nuevoEstado) {
+            if (idOperacionAprobarActual === null) return;
+
+            const op = listaOperacionesBancarias.find(o => o.id === idOperacionAprobarActual);
+            if (!op) return;
+
+            const cuentaObj = listaCuentasBancarias[op.cuentaIndex];
+
+            if (nuevoEstado === 'Aprobado') {
+                // Guarda las cuentas seleccionadas por el usuario
+                const selDebe = document.getElementById('sel-cuenta-debe');
+                const selHaber = document.getElementById('sel-cuenta-haber');
+                
+                if (selDebe && selHaber) {
+                    op.cuentaDebeSel = selDebe.value;
+                    op.cuentaHaberSel = selHaber.value;
+                }
+
+                op.estado = "Aprobado";
+                op.polizaContable = `POL-2026-00${correlativoPoliza++}`;
+                if (op.tipo === "Emisión de cheque" && cuentaObj) {
+                    cuentaObj.chequesUsados += 1;
+                    op.numCheque = parseInt(cuentaObj.primerCheque) + parseInt(cuentaObj.chequesUsados) - 1;
+                    renderizarReporteCuentas();
+                    sincronizarSelectOperaciones();
+                }
+                showToast(`¡Aprobado con éxito! Generada ${op.polizaContable}`, 'success');
+            } 
+            else if (nuevoEstado === 'Rechazado') {
+                op.estado = "Rechazado";
+                showToast('Solicitud RECHAZADA', 'info');
+            } 
+            else if (nuevoEstado === 'Anulado') {
+                op.estado = "Anulado";
+                if (op.tipo === "Emisión de cheque" && cuentaObj && cuentaObj.chequesUsados > 0) {
+                    cuentaObj.chequesUsados -= 1;
+                    renderizarReporteCuentas();
+                    sincronizarSelectOperaciones();
+                }
+                showToast('Operación y Contabilización ANULADAS', 'info');
+            }
+
+            aplicarFiltros();
+            closeModalAprobar();
+        }
+
+        /* LÓGICA PARA REEMITIR OPERACIÓN ANULADA */
+        function reemitirOperacionAnulada() {
+            if (idOperacionAprobarActual === null) return;
+
+            const op = listaOperacionesBancarias.find(o => o.id === idOperacionAprobarActual);
+            if (!op) return;
+
+            op.estado = "Pendiente";
+            op.polizaContable = null;
+            op.entregado = false;
+            op.entregaDetalle = null;
+
+            showToast('Operación reactivada. Ahora puedes revisarla y volver a aprobarla.', 'info');
+            aplicarFiltros();
+            abrirModalAprobar(op.id);
+        }
+
+        /* LÓGICA DE IMPRESIÓN Y ENTREGA */
+        function imprimirChequeComprobante() {
+            const op = listaOperacionesBancarias.find(o => o.id === idOperacionAprobarActual);
+            if (!op) return;
+            showToast(`Generando vista de impresión para ${op.tipo} ${op.numCheque ? '#' + op.numCheque : ''}...`, 'info');
+            window.print();
+        }
+
+        function mostrarFormEntrega() {
+            document.getElementById('form-registro-entrega').style.display = 'block';
+        }
+
+        function cancelarEntrega() {
+            document.getElementById('form-registro-entrega').style.display = 'none';
+            document.getElementById('entrega-recibido-por').value = '';
+            document.getElementById('entrega-dpi').value = '';
+        }
+
+        function confirmarEntrega() {
+            const recibidoPor = document.getElementById('entrega-recibido-por').value.trim();
+            const dpi = document.getElementById('entrega-dpi').value.trim();
+
+            if (!recibidoPor) {
+                showToast('Por favor escribe el nombre de quien recibe', 'danger');
+                return;
+            }
+
+            const op = listaOperacionesBancarias.find(o => o.id === idOperacionAprobarActual);
+            if (op) {
+                op.entregado = true;
+                op.entregaDetalle = {
+                    recibidoPor,
+                    dpi: dpi || 'N/A',
+                    fecha: new Date().toLocaleDateString('es-GT')
+                };
+                showToast('¡Registro de entrega guardado correctamente!');
+                aplicarFiltros();
+                closeModalAprobar();
+            }
+        }
+
+        /* CRUD FORMULARIO SOLICITUD CON RECURRENCIA */
+        function mostrarFormularioOperacion(editId = -1) {
+            const formCard = document.getElementById('contenedor-formulario-operacion');
+            const tablaCard = document.getElementById('contenedor-tabla-operaciones');
+
+            document.getElementById('edit-operacion-id').value = editId;
+
+            if(editId !== -1) {
+                const op = listaOperacionesBancarias.find(o => o.id === editId);
+                if(op) {
+                    document.getElementById('titulo-form-operacion').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Editar Solicitud de Operación';
+                    document.getElementById('op-tipo-select').value = op.tipo;
+                    evaluarTipoOperacionSeleccionado();
+                    document.getElementById('op-fecha-input').value = op.fechaIso;
+                    document.getElementById('select-cuentas-operaciones').value = op.cuentaIndex;
+                    document.getElementById('op-monto').value = op.monto;
+                    document.getElementById('op-moneda').value = op.moneda;
+                    document.getElementById('op-tipo-cambio').value = op.tipoCambio;
+                    document.getElementById('op-departamento').value = op.departamento || '';
+                    document.getElementById('op-beneficiario').value = op.beneficiario || '';
+                    document.getElementById('op-descripcion').value = op.descripcion || '';
+                    document.getElementById('chk-anticipo').checked = !!op.esAnticipo;
+
+                    // Carga datos de recurrencia si los tiene
+                    if (op.recurrente && op.configRecurrencia) {
+                        document.getElementById('chk-activar-recurrencia').checked = true;
+                        toggleFormularioRecurrencia(true);
+                        document.getElementById('rec-form-intervalo').value = op.configRecurrencia.intervalo || 15;
+                        document.getElementById('rec-form-frecuencia').value = op.configRecurrencia.frecuencia || 'Dias';
+                        document.getElementById('rec-form-fecha-inicio').value = op.configRecurrencia.fechaInicio || op.fechaIso;
+                    } else {
+                        document.getElementById('chk-activar-recurrencia').checked = false;
+                        toggleFormularioRecurrencia(false);
+                    }
+                }
+            } else {
+                document.getElementById('form-operacion-cheque').reset();
+                document.getElementById('edit-operacion-id').value = "-1";
+                document.getElementById('op-fecha-input').value = new Date().toISOString().split('T')[0];
+                document.getElementById('rec-form-fecha-inicio').value = new Date().toISOString().split('T')[0];
+                document.getElementById('titulo-form-operacion').innerHTML = '<i class="fa-solid fa-file-circle-plus"></i> Nueva Solicitud de Operación';
+                evaluarTipoOperacionSeleccionado();
+                document.getElementById('chk-activar-recurrencia').checked = false;
+                toggleFormularioRecurrencia(false);
+            }
+
+            tablaCard.style.display = 'none';
+            formCard.style.display = 'block';
+        }
+
+        function ocultarFormularioOperacion() {
+            document.getElementById('contenedor-formulario-operacion').style.display = 'none';
+            document.getElementById('contenedor-tabla-operaciones').style.display = 'block';
+        }
+
+        function guardarOperacionBancaria(e) {
+            e.preventDefault();
+            const editId = parseInt(document.getElementById('edit-operacion-id').value);
+
+            const tipo = document.getElementById('op-tipo-select').value;
+            const fechaIso = document.getElementById('op-fecha-input').value;
+            const partesFecha = fechaIso.split('-');
+            const fechaFormato = `${partesFecha[2]}/${partesFecha[1]}/${partesFecha[0]}`;
+
+            let cuentaIndex = parseInt(document.getElementById('select-cuentas-operaciones').value);
+            let beneficiario = document.getElementById('op-beneficiario').value.trim();
+
+            if (tipo === 'Transferencia bancaria') {
+                cuentaIndex = parseInt(document.getElementById('transf-cuenta-origen').value) || 0;
+                beneficiario = "Transferencia entre Cuentas";
+            }
+
+            const monto = parseFloat(document.getElementById('op-monto').value);
+            const moneda = document.getElementById('op-moneda').value;
+            const tipoCambio = parseFloat(document.getElementById('op-tipo-cambio').value) || 1;
+            const departamento = document.getElementById('op-departamento').value;
+            const descripcion = document.getElementById('op-descripcion').value.trim();
+            const esAnticipo = document.getElementById('chk-anticipo').checked;
+
+            const esRecurrente = document.getElementById('chk-activar-recurrencia').checked;
+            let configRecurrencia = null;
+
+            if (esRecurrente) {
+                configRecurrencia = {
+                    intervalo: document.getElementById('rec-form-intervalo').value || 15,
+                    frecuencia: document.getElementById('rec-form-frecuencia').value,
+                    fechaInicio: document.getElementById('rec-form-fecha-inicio').value,
+                    fechaFin: document.getElementById('rec-form-fecha-fin').value,
+                    repeticiones: document.getElementById('rec-form-cant-repeticiones').value
+                };
+            }
+
+            if (editId !== -1) {
+                const index = listaOperacionesBancarias.findIndex(o => o.id === editId);
+                if (index !== -1) {
+                    listaOperacionesBancarias[index] = {
+                        ...listaOperacionesBancarias[index],
+                        tipo, fechaIso, fechaFormato, cuentaIndex, beneficiario, monto, moneda, tipoCambio, departamento, descripcion, esAnticipo,
+                        recurrente: esRecurrente,
+                        configRecurrencia
+                    };
+                    showToast('¡Solicitud actualizada!');
+                }
+            } else {
+                const nuevoId = Date.now();
+                listaOperacionesBancarias.unshift({
+                    id: nuevoId,
+                    fechaIso,
+                    fechaFormato,
+                    tipo,
+                    cuentaIndex,
+                    beneficiario,
+                    monto,
+                    moneda,
+                    tipoCambio,
+                    departamento,
+                    descripcion,
+                    esAnticipo,
+                    estado: "Pendiente",
+                    entregado: false,
+                    recurrente: esRecurrente,
+                    configRecurrencia
+                });
+                showToast('¡Solicitud registrada en estado pendiente!');
+            }
+
+            aplicarFiltros();
+            ocultarFormularioOperacion();
+        }
+
+        /* TABLA CUENTAS BANCARIAS */
+        function renderizarReporteCuentas() {
+            const tbody = document.getElementById('tabla-reporte-cuentas-body');
+            if(listaCuentasBancarias.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color: var(--text-muted);">No hay cuentas registradas.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            listaCuentasBancarias.forEach((c, index) => {
+                const chequeFinal = parseInt(c.primerCheque) + parseInt(c.cantCheques) - 1;
+                const porcentajeUso = Math.round((c.chequesUsados / c.cantCheques) * 100);
+
+                tbody.innerHTML += `<tr class="${!c.activo ? 'row-inactiva' : ''}">
+                    <td>
+                        <strong>${c.banco}</strong><br>
+                        <code>${c.numero}</code><br>
+                        <small style="color:var(--text-muted);">${c.titular}</small>
+                    </td>
+                    <td>
+                        <i class="fa-solid fa-money-check"></i> Cheques <strong>${c.primerCheque}</strong> al <strong>${chequeFinal}</strong><br>
+                        <small style="color:var(--text-muted);">Total: ${c.cantCheques} cheques</small>
+                    </td>
+                    <td>
+                        <span class="badge ${!c.activo ? 'badge-danger' : (porcentajeUso > 80 ? 'badge-warning' : 'badge-info')}">
+                            ${c.chequesUsados} de ${c.cantCheques} usados (${porcentajeUso}%)
+                        </span>
+                    </td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                            <button class="btn-action-tbl" onclick="cargarParaEditar(${index})" title="Editar datos en el formulario izquierdo">
+                                <i class="fa-solid fa-pen-to-square"></i> Editar
+                            </button>
+
+                            <div class="switch-container">
+                                <label class="switch">
+                                    <input type="checkbox" ${c.activo ? 'checked' : ''} onchange="toggleEstadoCuenta(${index}, this.checked)">
+                                    <span class="slider"></span>
+                                </label>
+                                <span style="font-size: 11px; font-weight: 600; color: ${c.activo ? 'var(--success-color)' : 'var(--danger-color)'};">
+                                    ${c.activo ? 'Activa' : 'Inactiva'}
+                                </span>
+                            </div>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+        }
+
+        function toggleEstadoCuenta(index, isChecked) {
+            const cuenta = listaCuentasBancarias[index];
+            cuenta.activo = isChecked;
+            renderizarReporteCuentas();
+            sincronizarSelectFiltroCuentas();
+            sincronizarSelectOperaciones();
+            sincronizarSelectsReportes();
+            if (cuenta.activo) showToast(`¡Cuenta ${cuenta.numero} activada!`, 'success');
+            else showToast(`Cuenta ${cuenta.numero} inhabilitada`, 'info');
+        }
+
+        function cargarParaEditar(index) {
+            const cuenta = listaCuentasBancarias[index];
+
+            document.getElementById('edit-index').value = index;
+            document.getElementById('cuenta-banco-select').value = cuenta.banco;
+            document.getElementById('cuenta-numero').value = cuenta.numero;
+            document.getElementById('cuenta-titular').value = cuenta.titular;
+            document.getElementById('cuenta-tipo').value = cuenta.tipo;
+            document.getElementById('cuenta-alias').value = cuenta.alias || '';
+            document.getElementById('cuenta-primer-cheque').value = cuenta.primerCheque;
+            document.getElementById('cuenta-cant-cheques').value = cuenta.cantCheques;
+            document.getElementById('cuenta-monto-max').value = cuenta.montoMax || '';
+            document.getElementById('cuenta-contable').value = cuenta.cuentaContable || '';
+            document.getElementById('cuenta-activa').checked = cuenta.activo;
+
+            document.getElementById('form-titulo').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Editando Cuenta Bancaria';
+            document.getElementById('btn-submit-cuenta').innerHTML = '<i class="fa-solid fa-arrows-rotate"></i> Actualizar Cuenta';
+
+            if(window.innerWidth < 1100) {
+                document.getElementById('form-mantenimiento-cuentas').scrollIntoView({ behavior: 'smooth' });
+            }
+
+            showToast(`Cargados datos de "${cuenta.banco} - ${cuenta.numero}"`, 'info');
+        }
+
+        function limpiarFormCuenta() {
+            document.getElementById('form-mantenimiento-cuentas').reset();
+            document.getElementById('edit-index').value = "-1";
+            document.getElementById('form-titulo').innerHTML = '<i class="fa-solid fa-plus-circle"></i> Datos de Cuenta y Chequera';
+            document.getElementById('btn-submit-cuenta').innerHTML = '<i class="fa-solid fa-save"></i> Guardar Cuenta y Chequera';
+            showToast('Formulario listo para nueva cuenta', 'info');
+        }
+
+        function guardarCuentaBancaria(e) {
+            e.preventDefault();
+            const editIndex = parseInt(document.getElementById('edit-index').value);
+
+            const banco = document.getElementById('cuenta-banco-select').value;
+            const numero = document.getElementById('cuenta-numero').value.trim();
+            const titular = document.getElementById('cuenta-titular').value.trim();
+            const tipo = document.getElementById('cuenta-tipo').value;
+            const alias = document.getElementById('cuenta-alias').value.trim();
+            const primerCheque = parseInt(document.getElementById('cuenta-primer-cheque').value) || 1001;
+            const cantCheques = parseInt(document.getElementById('cuenta-cant-cheques').value) || 50;
+            const montoMaxVal = document.getElementById('cuenta-monto-max').value;
+            const cuentaContable = document.getElementById('cuenta-contable').value;
+            const activo = document.getElementById('cuenta-activa').checked;
+
+            if (editIndex >= 0) {
+                const chequesUsadosAnterior = listaCuentasBancarias[editIndex].chequesUsados;
+                if (cantCheques < chequesUsadosAnterior) {
+                    showToast('La cantidad de cheques no puede ser menor a los ya emitidos', 'danger');
+                    return;
+                }
+
+                listaCuentasBancarias[editIndex] = {
+                    banco, numero, titular, tipo, alias, montoMax: montoMaxVal, cuentaContable, primerCheque, cantCheques, chequesUsados: chequesUsadosAnterior, activo
+                };
+                showToast(`¡Cuenta ${numero} actualizada!`);
+            } else {
+                listaCuentasBancarias.unshift({
+                    banco, numero, titular, tipo, alias, montoMax: montoMaxVal, cuentaContable, primerCheque, cantCheques, chequesUsados: 0, activo
+                });
+                showToast(`¡Cuenta ${numero} guardada!`);
+            }
+
+            renderizarReporteCuentas();
+            sincronizarSelectFiltroCuentas();
+            sincronizarSelectOperaciones();
+            sincronizarSelectsReportes();
+            limpiarFormCuenta();
+        }
+
+        function sincronizarSelectOperaciones() {
+            const selects = document.querySelectorAll('.select-cuentas-dinamico');
+            selects.forEach(selectOps => {
+                selectOps.innerHTML = '<option value="" selected>Elija una cuenta bancaria</option>';
+                listaCuentasBancarias.forEach((c, index) => {
+                    const chequeSiguiente = parseInt(c.primerCheque) + parseInt(c.chequesUsados);
+                    const opt = document.createElement('option');
+                    opt.value = index;
+                    
+                    if (c.activo) {
+                        opt.textContent = `${c.banco} - ${c.numero} (Próximo: #${chequeSiguiente})`;
+                    } else {
+                        opt.textContent = `${c.banco} - ${c.numero} [INACTIVA]`;
+                        opt.disabled = true;
+                    }
+                    
+                    selectOps.appendChild(opt);
+                });
+            });
+        }
+
+        function openModalExpressBanco() { document.getElementById('modal-express-banco').classList.add('active'); }
+        function closeModalExpressBanco() { document.getElementById('modal-express-banco').classList.remove('active'); }
+
+        function guardarBancoExpress(e) {
+            e.preventDefault();
+            const nombreBanco = document.getElementById('express-banco-nombre').value.trim();
+            if(!nombreBanco) return;
+
+            const selectCuenta = document.getElementById('cuenta-banco-select');
+            const opt = document.createElement('option');
+            opt.value = nombreBanco;
+            opt.textContent = nombreBanco;
+            opt.selected = true;
+            selectCuenta.appendChild(opt);
+
+            closeModalExpressBanco();
+            document.getElementById('express-banco-nombre').value = '';
+            showToast(`¡Banco "${nombreBanco}" agregado!`);
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast-item ${type}`;
+            toast.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.remove(); }, 3000);
+        }
+
+        function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
+
+        function toggleSubmenu(submenuId, parentMenuId) {
+            document.getElementById(submenuId).classList.toggle('open');
+            document.getElementById(parentMenuId).classList.toggle('open');
+        }
+
+        function showView(viewId, activeLinkId) {
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.submenu li').forEach(l => l.classList.remove('active-parent'));
+
+            const targetView = document.getElementById(viewId);
+            if (targetView) targetView.classList.add('active');
+
+            const activeLink = document.getElementById(activeLinkId);
+            if (activeLink) activeLink.classList.add('active-parent');
+
+            if(window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.remove('mobile-open');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,2145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tributum - Caja Chica</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-main: #f8fafc;
+            --sidebar-color: #222d32;
+            --purple-primary: #605ca8;
+            --purple-hover: #4a478a;
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --success-color: #10b981;
+            --info-color: #3b82f6;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --card-border: #e2e8f0;
+            --card-bg: #ffffff;
+            --block-bg: #f8fafd;
+            --soft-panel: #f8fafc;
+            --input-bg: #ffffff;
+            --table-hover: #f1f5f9;
+        }
+
+        body.dark-mode {
+            --bg-main: #0f172a;
+            --sidebar-color: #1e293b;
+            --purple-primary: #818cf8;
+            --purple-hover: #6366f1;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --card-border: #334155;
+            --card-bg: #1e293b;
+            --block-bg: #162032;
+            --soft-panel: #162032;
+            --input-bg: #0f172a;
+            --table-hover: #283548;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Segoe UI', Helvetica, Arial, sans-serif; }
+        body { background-color: var(--bg-main); color: var(--text-main); min-height: 100vh; transition: background-color 0.3s, color 0.3s; }
+        .app-container { display: flex; min-height: 100vh; }
+
+        .sidebar {
+            width: 240px; background-color: var(--sidebar-color); color: #b8c7ce;
+            font-size: 14px; position: fixed; top: 0; left: 0; height: 100vh;
+            overflow-y: auto; z-index: 20; transition: all 0.3s ease;
+        }
+        .brand-logo {
+            height: 50px; display: flex; align-items: center; padding: 0 20px;
+            background: rgba(0, 0, 0, 0.15); color: #fff; font-weight: 700; font-size: 16px;
+            letter-spacing: 0.5px; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .menu-list { list-style: none; padding: 10px 0; }
+        .menu-item { border-left: 3px solid transparent; }
+        .menu-link {
+            display: flex; justify-content: space-between; align-items: center;
+            color: #b8c7ce; text-decoration: none; padding: 12px 15px; cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .menu-link:hover { color: #fff; background-color: rgba(255, 255, 255, 0.05); }
+        .menu-item.active { border-left: 3px solid var(--purple-primary); }
+        .menu-item.active > .menu-link { color: #fff; background-color: rgba(255, 255, 255, 0.08); }
+        .link-content { display: flex; align-items: center; gap: 10px; }
+        .arrow-icon { font-size: 10px; color: #777; transition: transform 0.2s; }
+        .menu-item.open > .menu-link .arrow-icon { transform: rotate(180deg); }
+        .submenu { list-style: none; background-color: rgba(0, 0, 0, 0.2); display: none; }
+        .submenu.open { display: block; }
+        .submenu li a {
+            display: flex; align-items: center; gap: 8px; color: #8aa4af;
+            text-decoration: none; padding: 10px 15px 10px 28px; font-size: 13px;
+            cursor: pointer; transition: color 0.2s, background 0.2s;
+        }
+        .submenu li a:hover, .submenu li a.sub-active { color: #fff; background-color: rgba(255, 255, 255, 0.08); font-weight: 600; }
+
+        .main-content {
+            flex-grow: 1; margin-left: 240px; display: flex; flex-direction: column;
+            min-height: 100vh; width: calc(100% - 240px); transition: all 0.3s ease;
+        }
+        .top-bar {
+            height: 50px; background-color: var(--purple-primary); display: flex;
+            align-items: center; justify-content: space-between; padding: 0 20px;
+            position: sticky; top: 0; z-index: 15;
+        }
+        .top-bar-right { display: flex; align-items: center; gap: 15px; color: white; font-size: 14px; }
+        .btn-theme-toggle {
+            background: rgba(255, 255, 255, 0.2); border: none; color: white;
+            padding: 5px 12px; border-radius: 20px; cursor: pointer; font-size: 12px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .btn-toggle-menu { display: none; background: none; border: none; color: white; font-size: 18px; cursor: pointer; }
+
+        .content-body { padding: 24px; flex-grow: 1; }
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+
+        .view-header {
+            display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+            gap: 12px; margin-bottom: 18px;
+        }
+        .page-title { font-size: 20px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .header-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+        .btn {
+            padding: 8px 14px; border-radius: 7px; border: 1px solid transparent; font-size: 13px;
+            font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+            transition: all 0.15s; text-decoration: none;
+        }
+        .btn-primary { background: var(--purple-primary); color: #fff; }
+        .btn-primary:hover { background: var(--purple-hover); }
+        .btn-success { background: var(--success-color); color: #fff; }
+        .btn-info { background: var(--info-color); color: #fff; }
+        .btn-warning { background: var(--warning-color); color: #fff; }
+        .btn-outline { background: var(--card-bg); border-color: var(--card-border); color: var(--text-main); }
+        .btn-outline:hover { border-color: var(--purple-primary); color: var(--purple-primary); }
+        .btn-back-soft {
+            background: rgba(96, 92, 168, 0.1); color: var(--purple-primary); border: 1px solid rgba(96, 92, 168, 0.18);
+            padding: 7px 14px; border-radius: 7px; font-size: 13px; font-weight: 600;
+            cursor: pointer; display: inline-flex; align-items: center; gap: 7px;
+        }
+        .btn-back-soft:hover { background: rgba(96, 92, 168, 0.18); }
+        .btn-sm { padding: 5px 9px; font-size: 12px; border-radius: 6px; }
+
+        /* --- ESTANDARIZACIÓN DE BOTONES EN COLUMNA ACCIONES --- */
+        .actions-group {
+            display: inline-grid;
+            grid-template-columns: repeat(2, 108px);
+            align-items: center;
+            justify-content: end;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .actions-group.single-action .btn-tbl {
+            grid-column: 1 / -1;
+            width: 222px;
+        }
+        .btn-tbl {
+            width: 108px;
+            height: 30px;
+            padding: 0 8px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-tbl-primary {
+            background: rgba(96, 92, 168, 0.12);
+            color: var(--purple-primary);
+            border: 1px solid rgba(96, 92, 168, 0.30);
+        }
+        .btn-tbl-primary:hover {
+            background: var(--purple-primary);
+            color: #fff;
+            border-color: var(--purple-primary);
+        }
+        .btn-tbl-neutral {
+            background: var(--card-bg);
+            color: var(--text-main);
+            border: 1px solid var(--card-border);
+        }
+        .btn-tbl-neutral:hover {
+            border-color: var(--purple-primary);
+            color: var(--purple-primary);
+        }
+        .btn-tbl-danger-soft {
+            background: var(--card-bg);
+            color: var(--text-muted);
+            border: 1px solid var(--card-border);
+        }
+        .btn-tbl-danger-soft:hover {
+            border-color: var(--danger-color);
+            color: var(--danger-color);
+            background: rgba(239, 68, 68, 0.06);
+        }
+
+        .toolbar {
+            display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+            gap: 10px; margin-bottom: 14px;
+        }
+        .quick-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+        .quick-pill {
+            padding: 6px 12px; border-radius: 20px; border: 1px solid var(--card-border);
+            background: var(--card-bg); color: var(--text-muted); font-size: 12px; font-weight: 600;
+            cursor: pointer; transition: all 0.15s;
+        }
+        .quick-pill.active { background: var(--purple-primary); color: #fff; border-color: var(--purple-primary); }
+
+        .filter-collapsible {
+            display: none; background: var(--card-bg); border: 1px solid var(--card-border);
+            border-radius: 8px; padding: 14px; margin-bottom: 14px;
+        }
+        .filter-collapsible.open { display: block; }
+        .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+
+        .input-control {
+            padding: 8px 11px; border: 1px solid var(--card-border); border-radius: 7px;
+            background: var(--input-bg); color: var(--text-main); font-size: 13px; outline: none; width: 100%;
+        }
+        .input-control:focus { border-color: var(--purple-primary); }
+        .readonly { background: var(--bg-main); font-weight: 600; }
+
+        .card-panel {
+            background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px;
+            overflow: hidden; margin-bottom: 18px;
+        }
+        .card-sheet {
+            background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px;
+            padding: 20px; margin-bottom: 18px;
+        }
+        .form-sheet-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding-bottom: 14px; margin-bottom: 16px; border-bottom: 1px solid var(--card-border);
+            flex-wrap: wrap; gap: 12px;
+        }
+        .form-sheet-title {
+            font-size: 18px; font-weight: 700; color: var(--purple-primary);
+            display: flex; align-items: center; gap: 9px;
+        }
+
+        /* --- WIZARD DE 4 TABS (ESTILO CUENTAS POR PAGAR) --- */
+        .wizard-tabs {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 18px;
+        }
+        .wizard-tab {
+            background: var(--block-bg); border: 1px solid var(--card-border); border-radius: 9px;
+            padding: 11px 14px; display: flex; align-items: center; gap: 10px;
+            cursor: pointer; text-align: left; color: var(--text-muted); transition: all 0.2s;
+        }
+        .wizard-tab:hover { border-color: var(--purple-primary); color: var(--text-main); }
+        .wizard-tab.active {
+            background: rgba(96, 92, 168, 0.09); border-color: var(--purple-primary);
+            color: var(--purple-primary); box-shadow: 0 2px 6px rgba(96, 92, 168, 0.12);
+        }
+        .wizard-step-num {
+            width: 26px; height: 26px; border-radius: 50%; background: var(--card-border);
+            color: var(--text-main); font-size: 12px; font-weight: 700;
+            display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .wizard-tab.active .wizard-step-num { background: var(--purple-primary); color: #fff; }
+        .wizard-tab.done .wizard-step-num { background: var(--success-color); color: #fff; }
+        .wizard-tab-info { display: flex; flex-direction: column; }
+        .wizard-tab-title { font-size: 13px; font-weight: 700; line-height: 1.2; }
+        .wizard-tab-sub { font-size: 11px; opacity: 0.85; margin-top: 2px; }
+
+        .form-block {
+            background-color: var(--block-bg); border: 1px solid var(--card-border);
+            border-radius: 10px; padding: 16px 18px; margin-bottom: 14px;
+        }
+        .form-block-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 14px; flex-wrap: wrap; gap: 10px;
+        }
+        .form-block-title {
+            font-size: 12.5px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.04em; color: var(--purple-primary);
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .grid-provider-row {
+            display: grid; grid-template-columns: 2.3fr 0.85fr 0.9fr 0.9fr; gap: 14px; align-items: end;
+        }
+        .grid-doc-gt {
+            display: grid; grid-template-columns: 0.75fr 0.95fr 0.75fr 1.05fr 1.5fr; gap: 12px; align-items: end;
+        }
+        .tax-flags-grid {
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 14px;
+        }
+        .tax-pill {
+            display: flex; align-items: center; justify-content: center; gap: 7px;
+            background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px;
+            padding: 9px 10px; font-size: 12.5px; font-weight: 600; cursor: pointer;
+            transition: border-color 0.2s, background 0.2s; user-select: none; white-space: nowrap;
+        }
+        .tax-pill:hover { border-color: var(--purple-primary); }
+        .tax-pill input[type="checkbox"] { accent-color: var(--purple-primary); }
+
+        .gas-panel {
+            display: none; background: rgba(245, 158, 11, 0.08);
+            border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px;
+            padding: 12px 14px; margin-bottom: 14px;
+        }
+        .gas-panel.open { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 12px; }
+
+        .amounts-3col {
+            display: grid; grid-template-columns: 1.2fr 0.9fr 1fr; gap: 16px; align-items: stretch;
+        }
+        .sub-card {
+            background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px;
+            padding: 14px; display: flex; flex-direction: column; gap: 11px;
+        }
+        .sub-card-label {
+            font-size: 11.5px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.03em; color: var(--text-muted); margin-bottom: 2px;
+        }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .summary-line {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 7px 0; font-size: 13px; border-bottom: 1px dashed var(--card-border);
+        }
+        .summary-line:last-child {
+            border-bottom: none; margin-top: auto; padding-top: 10px;
+            border-top: 1px solid var(--card-border); font-size: 15px; font-weight: 700;
+        }
+
+        .form-field { display: flex; flex-direction: column; gap: 5px; }
+        .form-field label { font-size: 12px; font-weight: 600; color: var(--text-main); }
+        .input-mono { font-family: 'JetBrains Mono', 'Fira Code', monospace; }
+
+        .acc-context-card {
+            background: var(--card-bg); border: 1px solid var(--card-border);
+            border-left: 4px solid var(--purple-primary); border-radius: 8px;
+            padding: 12px 16px; margin-bottom: 14px; display: flex;
+            justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;
+        }
+        .acc-context-items { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; font-size: 13px; }
+        .acc-context-items div span { color: var(--text-muted); font-size: 11px; display: block; }
+        .acc-context-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .cxp-row-highlight td { background: rgba(96, 92, 168, 0.07); }
+
+        .summary-review-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 16px; }
+        .review-box {
+            background: var(--card-bg); border: 1px solid var(--card-border);
+            border-radius: 9px; padding: 14px 16px;
+        }
+        .review-box-title {
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 12px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.03em; color: var(--purple-primary); margin-bottom: 10px;
+        }
+        .review-kv {
+            display: flex; justify-content: space-between; padding: 6px 0;
+            font-size: 13px; border-bottom: 1px dashed var(--card-border); gap: 12px;
+        }
+        .review-kv:last-child { border-bottom: none; }
+        .review-kv span:first-child { color: var(--text-muted); }
+        .review-kv strong { text-align: right; }
+
+        .wizard-live-bar {
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
+            gap: 12px; background: var(--block-bg); border: 1px solid var(--card-border);
+            border-radius: 8px; padding: 10px 16px; margin-top: 14px; font-size: 13px;
+        }
+        .wizard-live-metrics { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+
+        /* --- TABLAS --- */
+        .table-responsive { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th {
+            background: var(--bg-main); color: var(--text-muted); font-weight: 600;
+            text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--card-border);
+            white-space: nowrap; font-size: 12px;
+        }
+        td { padding: 11px 14px; border-bottom: 1px solid var(--card-border); vertical-align: middle; }
+        tr:hover td { background: var(--table-hover); }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+
+        .badge {
+            padding: 3px 9px; border-radius: 12px; font-size: 11px; font-weight: 600;
+            display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+        }
+        .badge-warn { background: rgba(245, 158, 11, 0.15); color: #d97706; }
+        .badge-info { background: rgba(59, 130, 246, 0.15); color: #2563eb; }
+        .badge-purple { background: rgba(139, 92, 246, 0.15); color: #7c3aed; }
+        .badge-ok { background: rgba(16, 185, 129, 0.15); color: #059669; }
+        .badge-neutral { background: rgba(100, 116, 139, 0.15); color: #475569; }
+        .badge-danger { background: rgba(239, 68, 68, 0.15); color: #dc2626; }
+
+        .summary-footer {
+            display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+            gap: 15px; padding: 14px 16px; border-top: 1px solid var(--card-border); background: var(--bg-main);
+        }
+        .summary-items { display: flex; flex-wrap: wrap; gap: 24px; font-size: 13px; }
+        .summary-items div span { color: var(--text-muted); display: block; font-size: 11px; }
+        .summary-items div strong { font-size: 15px; }
+
+        .alert-saldo {
+            background: #dc2626; color: #fff; padding: 10px 16px; border-radius: 8px;
+            font-size: 13px; font-weight: 600; display: none; justify-content: space-between; margin-top: 12px;
+        }
+        .alert-saldo.visible { display: flex; }
+
+        /* --- MODALES --- */
+        .modal-backdrop {
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); z-index: 50;
+            display: none; align-items: center; justify-content: center; padding: 16px;
+        }
+        .modal-backdrop.open { display: flex; }
+        .modal-box {
+            background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px;
+            width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto;
+        }
+        .modal-header {
+            padding: 14px 18px; border-bottom: 1px solid var(--card-border);
+            display: flex; justify-content: space-between; align-items: center; font-weight: 600;
+        }
+        .modal-body { padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+        .modal-footer {
+            padding: 12px 18px; border-top: 1px solid var(--card-border);
+            display: flex; justify-content: flex-end; gap: 8px;
+        }
+
+        .toast {
+            position: fixed; bottom: 18px; right: 18px; background: #1e293b; color: #fff;
+            padding: 10px 16px; border-radius: 8px; font-size: 13px; z-index: 100;
+            border-left: 4px solid var(--success-color); display: none;
+        }
+
+        @media print {
+            .sidebar, .top-bar, .no-print { display: none !important; }
+            .main-content { margin-left: 0 !important; width: 100% !important; }
+            .modal-backdrop { position: static; background: none; padding: 0; }
+            .modal-box { border: none; max-width: 100%; }
+        }
+        @media (max-width: 1024px) {
+            .wizard-tabs, .grid-provider-row, .grid-doc-gt, .tax-flags-grid, .amounts-3col, .summary-review-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.mobile-open { transform: translateX(0); }
+            .main-content { margin-left: 0; width: 100%; }
+            .btn-toggle-menu { display: block; }
+            .wizard-tabs, .grid-provider-row, .grid-doc-gt, .tax-flags-grid, .amounts-3col, .gas-panel.open, .summary-review-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <button class="btn-toggle-menu" onclick="document.getElementById('sidebar').classList.toggle('mobile-open')"><i class="fa-solid fa-bars"></i></button>
+            </div>
+            <div class="top-bar-right">
+                <button class="btn-theme-toggle" onclick="toggleDarkMode()"><i class="fa-solid fa-moon"></i> Modo Oscuro</button>
+                <span><i class="fa-solid fa-user"></i> Homeland</span>
+            </div>
+        </header>
+
+        <div class="content-body">
+            <!-- =================================================================
+                 VISTA 1: OPERACIONES (CRUD ÚNICO)
+            ================================================================== -->
+            <section id="view-operaciones" class="view-section active">
+                <div class="view-header">
+                    <h2 class="page-title">Operaciones · Caja Chica</h2>
+                    <div class="header-actions">
+                        <button class="btn btn-outline" onclick="openModal('modal-carga-fondo')">
+                            <i class="fa-solid fa-plus"></i> Cargas de Caja Chica
+                        </button>
+                        <button class="btn btn-outline" onclick="openModal('modal-cheque-devolucion')">
+                            <i class="fa-solid fa-money-check"></i> Emisión de Cheques de Devolución
+                        </button>
+                        <button class="btn btn-primary" onclick="openModal('modal-nueva-liquidacion')">
+                            <i class="fa-solid fa-plus"></i> Liquidación de Caja Chica
+                        </button>
+                    </div>
+                </div>
+
+                <div class="toolbar">
+                    <div class="quick-pills" id="status-pills">
+                        <button class="quick-pill active" data-status="ALL" onclick="setStatusFilter('ALL', this)">Todas</button>
+                        <button class="quick-pill" data-status="save" onclick="setStatusFilter('save', this)">Liquidación de Caja Chica</button>
+                        <button class="quick-pill" data-status="send" onclick="setStatusFilter('send', this)">Autorizar Liquidaciones</button>
+                        <button class="quick-pill" data-status="autorizada" onclick="setStatusFilter('autorizada', this)">Contabilizar Liquidación</button>
+                        <button class="quick-pill" data-status="contabilizada" onclick="setStatusFilter('contabilizada', this)">Cierre de Caja Chica</button>
+                        <button class="quick-pill" data-status="cerrada" onclick="setStatusFilter('cerrada', this)">Cerradas</button>
+                    </div>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <input type="text" id="search-input" class="input-control" style="width:230px;" placeholder="Buscar..." oninput="renderLiquidaciones()">
+                        <button class="btn btn-outline" onclick="document.getElementById('panel-filtros').classList.toggle('open')">
+                            <i class="fa-solid fa-filter"></i> Filtros
+                        </button>
+                    </div>
+                </div>
+
+                <div class="filter-collapsible" id="panel-filtros">
+                    <div class="filter-grid">
+                        <div class="form-field">
+                            <label>Empresa</label>
+                            <select id="filter-empresa" class="input-control" onchange="renderLiquidaciones()">
+                                <option value="ALL">Todas</option>
+                                <option value="14=> HOMELAND, SOCIEDAD ANONIMA">14=> HOMELAND, SOCIEDAD ANONIMA</option>
+                                <option value="15=> SERVICIOS INTEGRALES, S.A.">15=> SERVICIOS INTEGRALES, S.A.</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label>Tipo</label>
+                            <select id="filter-tipo" class="input-control" onchange="renderLiquidaciones()">
+                                <option value="ALL">Todos</option>
+                                <option value="Liquidación de Caja Chica">Liquidación de Caja Chica</option>
+                                <option value="Cuenta por Liquidar">Cuenta por Liquidar</option>
+                                <option value="Reembolso">Reembolso</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-panel">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>No.</th>
+                                    <th>Tipo</th>
+                                    <th>Caja Chica / Responsable</th>
+                                    <th>Período</th>
+                                    <th class="text-right">Monto Asignado</th>
+                                    <th class="text-right">Total Facturas</th>
+                                    <th class="text-right">Saldo</th>
+                                    <th class="text-center">Estado</th>
+                                    <th class="text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-liquidaciones"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- =================================================================
+                 VISTA 2: LIQUIDACIÓN DE CAJA CHICA (WIZARD 4 TABS + DETALLE)
+            ================================================================== -->
+            <section id="view-captura" class="view-section">
+                <div class="view-header">
+                    <h2 class="page-title">
+                        <button class="btn-back-soft" onclick="volverAListado()"><i class="fa-solid fa-arrow-left"></i> Volver al listado</button>
+                        <span id="cap-titulo">Liquidación de Caja Chica · LIQ-2026-001</span>
+                        <span id="cap-badge" class="badge badge-warn">save</span>
+                    </h2>
+                    <div class="header-actions">
+                        <button class="btn btn-outline" onclick="descargarPlantilla()"><i class="fa-solid fa-download"></i> Descargar Plantilla</button>
+                        <button class="btn btn-outline" onclick="openModal('modal-instrucciones')"><i class="fa-solid fa-circle-info"></i> Ver instrucciones de llenado</button>
+                        <button class="btn btn-outline" onclick="subirFacturasMock()"><i class="fa-solid fa-upload"></i> Subir Facturas</button>
+                        <button class="btn btn-info" onclick="imprimirLiquidacion(currentLiqId)"><i class="fa-solid fa-print"></i> Imprimir</button>
+                        <button class="btn btn-success" id="btn-enviar-auth" onclick="enviarAAutorizarActual()"><i class="fa-solid fa-paper-plane"></i> Enviar a Autorizar</button>
+                    </div>
+                </div>
+
+                <!-- FICHA WIZARD DE INGRESO DE FACTURA (ESTRUCTURA ESTÁNDAR TRIBUTUM ERP) -->
+                <div class="card-sheet" id="panel-captura-form">
+                    <div class="form-sheet-header">
+                        <div class="form-sheet-title">
+                            <i class="fa-solid fa-file-circle-plus"></i>
+                            <span>Ingreso de Factura / Documento</span>
+                            <span id="badge-edit-mode" class="badge badge-warn" style="display:none;"><i class="fa-solid fa-pen"></i> Editando documento</span>
+                        </div>
+                        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; font-size:12.5px;">
+                            <span style="color:var(--text-muted);">Empresa:</span>
+                            <select id="cap-empresa" class="input-control" style="width:auto; padding:5px 10px;">
+                                <option value="14=> HOMELAND, SOCIEDAD ANONIMA">14=> HOMELAND, SOCIEDAD ANONIMA</option>
+                                <option value="15=> SERVICIOS INTEGRALES, S.A.">15=> SERVICIOS INTEGRALES, S.A.</option>
+                            </select>
+                            <span style="color:var(--text-muted);">Caja Chica:</span>
+                            <strong id="cap-caja-lbl">COPE#4 | Caja chica Operativa</strong>
+                        </div>
+                    </div>
+
+                    <!-- BARRA DE TABS DEL FORMULARIO (4 PASOS) -->
+                    <div class="wizard-tabs" id="cc-wizard-tabs">
+                        <button type="button" class="wizard-tab active" data-step="1" onclick="goToDocStep(1)">
+                            <span class="wizard-step-num">1</span>
+                            <div class="wizard-tab-info">
+                                <span class="wizard-tab-title">Proveedor y FEL</span>
+                                <span class="wizard-tab-sub">Emisor, fechas y DTE</span>
+                            </div>
+                        </button>
+                        <button type="button" class="wizard-tab" data-step="2" onclick="goToDocStep(2)">
+                            <span class="wizard-step-num">2</span>
+                            <div class="wizard-tab-info">
+                                <span class="wizard-tab-title">Montos e Impuestos</span>
+                                <span class="wizard-tab-sub">IVA, ISR, IDP y retenciones</span>
+                            </div>
+                        </button>
+                        <button type="button" class="wizard-tab" data-step="3" onclick="goToDocStep(3)">
+                            <span class="wizard-step-num">3</span>
+                            <div class="wizard-tab-info">
+                                <span class="wizard-tab-title">Distribución Contable</span>
+                                <span class="wizard-tab-sub">Cuentas y cuadre partida</span>
+                            </div>
+                        </button>
+                        <button type="button" class="wizard-tab" data-step="4" onclick="goToDocStep(4)">
+                            <span class="wizard-step-num"><i class="fa-solid fa-clipboard-check"></i></span>
+                            <div class="wizard-tab-info">
+                                <span class="wizard-tab-title">Resumen y Confirmar</span>
+                                <span class="wizard-tab-sub">Revisión final antes de grabar</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- TAB 1: PROVEEDOR Y DOCUMENTO FISCAL (FEL) -->
+                    <div class="doc-step-panel" id="doc-step-1">
+                        <div class="form-block">
+                            <div class="form-block-header">
+                                <div class="form-block-title">
+                                    <i class="fa-solid fa-building-user"></i> 1. Proveedor y Período del Documento
+                                </div>
+                            </div>
+                            <div class="grid-provider-row">
+                                <div class="form-field">
+                                    <label>Proveedor (NIT, nombre o código):</label>
+                                    <div style="display:flex; gap:8px;">
+                                        <input type="text" id="doc-proveedor" class="input-control" placeholder="Escriba NIT o razón social del proveedor..." onblur="autocompletarProveedor()" oninput="updateDocReview()">
+                                        <button type="button" class="btn btn-outline" onclick="openModal('modal-nuevo-proveedor')" style="white-space:nowrap;"><i class="fa-solid fa-plus"></i> Nuevo</button>
+                                    </div>
+                                </div>
+                                <div class="form-field">
+                                    <label>Mes Libro IVA:</label>
+                                    <input type="month" id="doc-mes-iva" class="input-control" value="2026-11" onchange="updateDocReview()">
+                                </div>
+                                <div class="form-field">
+                                    <label>Fecha Documento:</label>
+                                    <input type="date" id="doc-fecha" class="input-control" value="2026-11-16" onchange="updateDocReview()">
+                                </div>
+                                <div class="form-field">
+                                    <label>Fecha Vencimiento / Pago:</label>
+                                    <input type="date" id="doc-fecha-pago" class="input-control" value="2026-11-28" onchange="updateDocReview()">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-block" style="margin-bottom:0;">
+                            <div class="form-block-header">
+                                <div class="form-block-title">
+                                    <i class="fa-solid fa-receipt"></i> 2. Identificación del Documento Fiscal (FEL / SAT)
+                                </div>
+                                <div style="display:flex; align-items:center; gap:14px;">
+                                    <label style="font-size:12.5px; color:var(--text-main); cursor:pointer; font-weight:600; display:inline-flex; align-items:center; gap:6px;">
+                                        <input type="checkbox" id="chk-fac-especial" style="accent-color:var(--purple-primary);" onchange="recalcularDoc()"> Factura Especial
+                                    </label>
+                                    <span class="badge badge-ok"><i class="fa-solid fa-circle-check"></i> GFACE / FEL Activo</span>
+                                </div>
+                            </div>
+                            <div class="grid-doc-gt">
+                                <div class="form-field">
+                                    <label>Operación:</label>
+                                    <select id="doc-operacion" class="input-control" onchange="updateDocReview()">
+                                        <option value="Local">Local</option>
+                                        <option value="Exterior">Exterior</option>
+                                    </select>
+                                </div>
+                                <div class="form-field">
+                                    <label>Tipo Documento:</label>
+                                    <select id="doc-tipo" class="input-control" onchange="recalcularDoc()">
+                                        <option value="Factura">Factura</option>
+                                        <option value="F. Cambiaria">F. Cambiaria</option>
+                                        <option value="Recibo">Recibo</option>
+                                        <option value="Escritura">Escritura</option>
+                                    </select>
+                                </div>
+                                <div class="form-field">
+                                    <label>Insumo:</label>
+                                    <select id="doc-insumo" class="input-control" onchange="updateDocReview()">
+                                        <option value="Bienes">Bienes</option>
+                                        <option value="Servicios">Servicios</option>
+                                    </select>
+                                </div>
+                                <div class="form-field">
+                                    <label>Serie DTE:</label>
+                                    <input type="text" id="doc-serie" class="input-control input-mono" placeholder="Ej. DB306B95" oninput="updateDocReview()">
+                                </div>
+                                <div class="form-field">
+                                    <label>Número de Documento / Autorización:</label>
+                                    <input type="text" id="doc-numero" class="input-control input-mono" placeholder="Ej. 7216370224810" oninput="updateDocReview()">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 2: MONTOS, RÉGIMEN FISCAL E IMPUESTOS -->
+                    <div class="doc-step-panel" id="doc-step-2" style="display:none;">
+                        <div class="form-block" style="margin-bottom:0;">
+                            <div class="form-block-header">
+                                <div class="form-block-title">
+                                    <i class="fa-solid fa-calculator"></i> Régimen Fiscal, Desglose e Impuestos
+                                </div>
+                                <label style="font-size:12.5px; color:var(--text-muted); cursor:pointer; font-weight:600; display:inline-flex; align-items:center; gap:6px;">
+                                    <input type="checkbox" id="chk-manual" style="accent-color:var(--purple-primary);" onchange="toggleManualDocMode()"> Edición Manual de Impuestos
+                                </label>
+                            </div>
+
+                            <div class="tax-flags-grid">
+                                <label class="tax-pill">
+                                    <input type="checkbox" id="chk-iva-credito" checked onchange="recalcularDoc()">
+                                    <span>Crédito Fiscal IVA</span>
+                                </label>
+                                <label class="tax-pill">
+                                    <input type="checkbox" id="chk-reten-isr" onchange="recalcularDoc()">
+                                    <span>Retención ISR</span>
+                                </label>
+                                <label class="tax-pill">
+                                    <input type="checkbox" id="chk-reten-iva" onchange="recalcularDoc()">
+                                    <span>Retención IVA</span>
+                                </label>
+                                <label class="tax-pill">
+                                    <input type="checkbox" id="chk-peq-contrib" onchange="recalcularDoc()">
+                                    <span>Pequeño Contribuyente</span>
+                                </label>
+                                <label class="tax-pill">
+                                    <input type="checkbox" id="chk-gasolina" onchange="toggleGasolinaDoc()">
+                                    <span>Gasolina (IDP)</span>
+                                </label>
+                            </div>
+
+                            <div class="gas-panel" id="panel-gasolina">
+                                <div class="form-field">
+                                    <label>Tipo Combustible (IDP):</label>
+                                    <select class="input-control" id="gas-tipo" onchange="recalcularDoc()">
+                                        <option value="4.70">Súper (IDP Q 4.70/gal)</option>
+                                        <option value="4.60">Regular (IDP Q 4.60/gal)</option>
+                                        <option value="1.30">Diésel (IDP Q 1.30/gal)</option>
+                                    </select>
+                                </div>
+                                <div class="form-field">
+                                    <label>Cantidad de Galones:</label>
+                                    <input type="number" class="input-control text-right" id="gas-galones" value="0" step="0.01" oninput="recalcularDoc()">
+                                </div>
+                                <div class="form-field">
+                                    <label>IDP Exento Calculado (Q):</label>
+                                    <input type="text" class="input-control text-right readonly" id="gas-idp-total" value="0.00" readonly>
+                                </div>
+                            </div>
+
+                            <div class="amounts-3col">
+                                <div class="sub-card">
+                                    <div class="sub-card-label">Valor Facturado y Concepto</div>
+                                    <div class="grid-2">
+                                        <div class="form-field">
+                                            <label>Total Facturado:</label>
+                                            <input type="number" class="input-control text-right" id="doc-total" value="0.00" step="0.01" oninput="recalcularDoc()" style="font-weight:700; font-size:14.5px; color:var(--purple-primary);">
+                                        </div>
+                                        <div class="form-field">
+                                            <label>Moneda / T.C.:</label>
+                                            <div style="display:flex; gap:6px;">
+                                                <select class="input-control" id="doc-moneda" onchange="updateDocReview()">
+                                                    <option value="GTQ">GTQ</option>
+                                                    <option value="USD">USD</option>
+                                                </select>
+                                                <input type="number" class="input-control text-right" id="doc-tc" value="1.00" step="0.0001" style="width:74px;" oninput="updateDocReview()">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-field" style="flex-grow:1;">
+                                        <label>Justificación / Descripción del Gasto:</label>
+                                        <textarea class="input-control" rows="3" id="doc-desc" placeholder="Detalle del servicio o compra para la póliza contable..." oninput="updateDocReview()"></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="sub-card">
+                                    <div class="sub-card-label">Base Imponible e IVA</div>
+                                    <div class="form-field">
+                                        <label>Monto Exento / Libre de IVA:</label>
+                                        <input type="number" class="input-control text-right readonly" id="doc-libre" value="0.00" step="0.01" readonly oninput="recalcDocFromManual()">
+                                    </div>
+                                    <div class="form-field">
+                                        <label>Monto Gravado (Sujeto a IVA):</label>
+                                        <input type="number" class="input-control text-right readonly" id="doc-sujeto" value="0.00" step="0.01" readonly oninput="recalcDocFromManual()">
+                                    </div>
+                                    <div class="form-field">
+                                        <label>IVA Crédito Fiscal (12%):</label>
+                                        <input type="number" class="input-control text-right readonly" id="doc-iva" value="0.00" step="0.01" readonly oninput="recalcDocFromManual()">
+                                    </div>
+                                </div>
+
+                                <div class="sub-card">
+                                    <div class="sub-card-label">Liquidación y Retenciones</div>
+                                    <div class="summary-line">
+                                        <span>Subtotal Base (Sin IVA)</span>
+                                        <strong id="lbl-base">Q 0.00</strong>
+                                    </div>
+                                    <div class="summary-line">
+                                        <span>(+) IVA Crédito</span>
+                                        <span id="lbl-iva">Q 0.00</span>
+                                    </div>
+                                    <div class="summary-line">
+                                        <span>(−) Retención ISR</span>
+                                        <span id="lbl-isr" style="color:var(--danger-color); font-weight:600;">Q 0.00</span>
+                                    </div>
+                                    <div class="summary-line">
+                                        <span>(−) Retención IVA</span>
+                                        <span id="lbl-retiva" style="color:var(--danger-color); font-weight:600;">Q 0.00</span>
+                                    </div>
+                                    <div class="summary-line">
+                                        <span>Total a Pagar</span>
+                                        <span id="lbl-neto" style="color:var(--purple-primary);">Q 0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 3: DISTRIBUCIÓN CONTABLE -->
+                    <div class="doc-step-panel" id="doc-step-3" style="display:none;">
+                        <div class="form-block" style="margin-bottom:0;">
+                            <div class="form-block-header">
+                                <div class="form-block-title">
+                                    <i class="fa-solid fa-book-open"></i> Distribución Contable (Partida)
+                                </div>
+                                <button type="button" class="btn btn-outline btn-sm" onclick="agregarFilaCC()">
+                                    <i class="fa-solid fa-plus"></i> Agregar Línea de Gasto
+                                </button>
+                            </div>
+
+                            <div class="acc-context-card">
+                                <div class="acc-context-items">
+                                    <div>
+                                        <span>Documento / Emisor</span>
+                                        <strong id="acc-ctx-doc">Sin proveedor asignado · —</strong>
+                                    </div>
+                                    <div>
+                                        <span>Base Gasto</span>
+                                        <strong id="acc-ctx-base">Q 0.00</strong>
+                                    </div>
+                                    <div>
+                                        <span>IVA Crédito</span>
+                                        <strong id="acc-ctx-iva" style="color:var(--info-color);">Q 0.00</strong>
+                                    </div>
+                                    <div>
+                                        <span>Retenciones</span>
+                                        <strong id="acc-ctx-ret" style="color:var(--danger-color);">Q 0.00</strong>
+                                    </div>
+                                    <div>
+                                        <span>Régimen Aplicado</span>
+                                        <strong id="acc-ctx-flags" style="font-size:12px; color:var(--text-muted);">IVA 12%</strong>
+                                    </div>
+                                </div>
+
+                                <div class="acc-context-actions">
+                                    <button type="button" class="btn btn-outline btn-sm" onclick="jumpToDocStepAndFocus(1, 'doc-proveedor')">
+                                        <i class="fa-solid fa-pen"></i> Editar Proveedor / DTE
+                                    </button>
+                                    <button type="button" class="btn-back-soft" style="padding:5px 11px; font-size:12px;" onclick="jumpToDocStepAndFocus(2, 'doc-total')">
+                                        <i class="fa-solid fa-sliders"></i> Ajustar Montos / Impuestos
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive" style="background:var(--card-bg); border-radius:8px; border:1px solid var(--card-border);">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th style="width:28%;">Descripción</th>
+                                            <th style="width:28%;">Cuenta Contable</th>
+                                            <th style="width:18%;">Centro de Costo</th>
+                                            <th class="text-right" style="width:13%;">Debe</th>
+                                            <th class="text-right" style="width:13%;">Haber</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody-cc">
+                                        <tr>
+                                            <td><input type="text" class="input-control" id="row-gasto-desc" placeholder="Concepto del gasto..."></td>
+                                            <td>
+                                                <select class="input-control" id="doc-cuenta-gasto" onchange="updateDocReview()">
+                                                    <option>5102-01-001 · Papelería y Útiles</option>
+                                                    <option>5202-02-029 · Servicios de Computación</option>
+                                                    <option>5104-02-001 · Servicios Básicos</option>
+                                                    <option>5106-01-003 · Combustibles y Lubricantes</option>
+                                                    <option>5102-01-008 · Viáticos y Hospedaje</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <select class="input-control" id="doc-centro-costo">
+                                                    <option>Operaciones</option>
+                                                    <option>Administración</option>
+                                                    <option>Ventas</option>
+                                                </select>
+                                            </td>
+                                            <td><input type="number" step="0.01" class="input-control text-right" id="row-gasto-debe" value="0.00" oninput="recalcPartidaTotals()"></td>
+                                            <td><input type="number" step="0.01" class="input-control text-right readonly" value="0.00" readonly></td>
+                                        </tr>
+                                        <tr id="row-iva-linea">
+                                            <td><input type="text" class="input-control readonly" value="IVA Crédito Fiscal por Cobrar" readonly></td>
+                                            <td><input type="text" class="input-control readonly" value="1105-01-001 · IVA Crédito Fiscal" readonly></td>
+                                            <td><input type="text" class="input-control readonly" value="General" readonly></td>
+                                            <td><input type="number" step="0.01" class="input-control text-right readonly" id="row-iva-debe" value="0.00" readonly style="cursor:pointer;" onclick="jumpToDocStepAndFocus(2, 'chk-iva-credito')"></td>
+                                            <td><input type="number" step="0.01" class="input-control text-right readonly" value="0.00" readonly></td>
+                                        </tr>
+                                        <tr id="row-isr-linea">
+                                            <td><input type="text" class="input-control readonly" value="Retenciones por Pagar (ISR / IVA)" readonly></td>
+                                            <td><input type="text" class="input-control readonly" value="2104-02-005 · Retenciones por Pagar" readonly></td>
+                                            <td><input type="text" class="input-control readonly" value="General" readonly></td>
+                                            <td><input type="number" step="0.01" class="input-control text-right readonly" value="0.00" readonly></td>
+                                            <td><input type="number" step="0.01" class="input-control text-right readonly" id="row-isr-haber" value="0.00" readonly style="cursor:pointer;" onclick="jumpToDocStepAndFocus(2, 'chk-reten-isr')"></td>
+                                        </tr>
+                                        <tr class="cxp-row-highlight">
+                                            <td><input type="text" class="input-control readonly" value="Fondo de Caja Chica Asignado" readonly></td>
+                                            <td><input type="text" class="input-control readonly" id="row-caja-cuenta" value="1101-02-001 · Caja Chica Operativa (Cierre automático)" readonly></td>
+                                            <td><input type="text" class="input-control readonly" value="Tesorería" readonly></td>
+                                            <td><input type="number" step="0.01" class="input-control text-right readonly" value="0.00" readonly></td>
+                                            <td><input type="number" step="0.01" class="input-control text-right readonly" id="row-caja-haber" value="0.00" readonly style="font-weight:700;"></td>
+                                        </tr>
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th colspan="3" class="text-right">Totales Partida Contable:</th>
+                                            <th class="text-right" id="tot-debe">Q 0.00</th>
+                                            <th class="text-right" id="tot-haber">Q 0.00</th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 4: RESUMEN GENERAL Y CONFIRMAR -->
+                    <div class="doc-step-panel" id="doc-step-4" style="display:none;">
+                        <div class="form-block" style="margin-bottom:0;">
+                            <div class="form-block-header">
+                                <div class="form-block-title">
+                                    <i class="fa-solid fa-clipboard-check"></i> Resumen General del Documento Ingresado
+                                </div>
+                                <span class="badge badge-warn" id="rev-status-badge"><i class="fa-solid fa-triangle-exclamation"></i> Verifica proveedor o monto mayor a Q 0.00</span>
+                            </div>
+
+                            <div class="summary-review-grid">
+                                <div class="review-box">
+                                    <div class="review-box-title">
+                                        <span>Datos del Emisor y Documento</span>
+                                        <button type="button" class="btn btn-outline" style="padding:3px 9px; font-size:11.5px;" onclick="goToDocStep(1)">Editar</button>
+                                    </div>
+                                    <div class="review-kv">
+                                        <span>Proveedor:</span>
+                                        <strong id="rev-prov">Sin proveedor asignado</strong>
+                                    </div>
+                                    <div class="review-kv">
+                                        <span>Documento FEL / Serie-No.:</span>
+                                        <strong id="rev-dte" class="input-mono">— · —</strong>
+                                    </div>
+                                    <div class="review-kv">
+                                        <span>Clasificación:</span>
+                                        <strong id="rev-clasificacion">Local · Factura · Bienes</strong>
+                                    </div>
+                                    <div class="review-kv">
+                                        <span>Fecha Doc. / Vencimiento:</span>
+                                        <strong id="rev-fechas">2026-11-16 · Vence 2026-11-28</strong>
+                                    </div>
+                                    <div class="review-kv">
+                                        <span>Mes Libro IVA:</span>
+                                        <strong id="rev-mes-iva">2026-11</strong>
+                                    </div>
+                                    <div class="review-kv">
+                                        <span>Cuenta de Gasto Principal:</span>
+                                        <strong id="rev-cuenta">5102-01-001 · Papelería y Útiles</strong>
+                                    </div>
+                                    <div class="review-kv">
+                                        <span>Concepto / Justificación:</span>
+                                        <strong id="rev-desc" style="max-width:62%;">Sin descripción</strong>
+                                    </div>
+                                </div>
+
+                                <div class="review-box">
+                                    <div class="review-box-title">
+                                        <span>Liquidación Fiscal y Financiera</span>
+                                        <button type="button" class="btn btn-outline" style="padding:3px 9px; font-size:11.5px;" onclick="goToDocStep(2)">Editar</button>
+                                    </div>
+                                    <div class="review-kv">
+                                        <span>Moneda / Tipo de Cambio:</span>
+                                        <strong id="rev-moneda">GTQ (1.00)</strong>
+                                    </div>
+                                    <div class="review-kv">
+                                        <span>Monto Exento / Libre IVA:</span>
+                                        <strong id="rev-libre">Q 0.00</strong>
+                                    </div>
+                                    <div class="review-kv">
+                                        <span>Base Gravada (Sin IVA):</span>
+                                        <strong id="rev-sujeto">Q 0.00</strong>
+                                    </div>
+                                    <div class="review-kv">
+                                        <span>(+) IVA Crédito Fiscal (12%):</span>
+                                        <strong id="rev-iva">Q 0.00</strong>
+                                    </div>
+                                    <div class="review-kv">
+                                        <span>Total Facturado:</span>
+                                        <strong id="rev-total-fact" style="font-size:14px;">Q 0.00</strong>
+                                    </div>
+                                    <div class="review-kv">
+                                        <span>(−) Retención ISR:</span>
+                                        <strong id="rev-isr" style="color:var(--danger-color);">Q 0.00</strong>
+                                    </div>
+                                    <div class="review-kv">
+                                        <span>(−) Retención IVA:</span>
+                                        <strong id="rev-retiva" style="color:var(--danger-color);">Q 0.00</strong>
+                                    </div>
+                                    <div class="review-kv" style="padding-top:10px; margin-top:4px; border-top:1px solid var(--card-border);">
+                                        <span style="font-weight:700; color:var(--text-main);">Neto a Pagar al Proveedor:</span>
+                                        <strong id="rev-neto-pagar" style="font-size:16px; color:var(--purple-primary);">Q 0.00</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BARRA INFERIOR CON TOTALES EN VIVO Y NAVEGACIÓN -->
+                    <div class="wizard-live-bar">
+                        <div class="wizard-live-metrics">
+                            <span class="badge badge-ok" id="badge-cuadre"><i class="fa-solid fa-scale-balanced"></i> Partida Cuadrada</span>
+                            <span>Facturado: <strong id="bar-total-fact">Q 0.00</strong></span>
+                            <span>Neto a Pagar: <strong id="bar-neto-pagar" style="color:var(--purple-primary);">Q 0.00</strong></span>
+                        </div>
+
+                        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                            <button type="button" class="btn btn-outline" onclick="limpiarDoc()">Limpiar</button>
+                            <button type="button" class="btn btn-outline" id="btn-wiz-prev" onclick="changeDocStep(-1)" style="display:none;">
+                                <i class="fa-solid fa-chevron-left"></i> Anterior
+                            </button>
+                            <button type="button" class="btn btn-primary" id="btn-wiz-next" onclick="changeDocStep(1)">
+                                Siguiente <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline" id="btn-wiz-save" onclick="guardarDoc(false)" style="display:none;">
+                                <i class="fa-solid fa-floppy-disk"></i> Guardar
+                            </button>
+                            <button type="button" class="btn btn-primary" id="btn-wiz-save-print" onclick="guardarDoc(true)" style="display:none;">
+                                <i class="fa-solid fa-print"></i> Grabar e Imprimir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TABLA DE FACTURAS INGRESADAS EN LA LIQUIDACIÓN -->
+                <div class="card-panel">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Tipo</th>
+                                    <th>Serie - Número</th>
+                                    <th>NIT</th>
+                                    <th>Proveedor</th>
+                                    <th>Descripción</th>
+                                    <th class="text-right">IVA</th>
+                                    <th class="text-right">Monto Total</th>
+                                    <th class="text-center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-docs"></tbody>
+                        </table>
+                    </div>
+                    <div class="summary-footer">
+                        <div class="summary-items">
+                            <div><span>Monto Asignado</span><strong id="lbl-asignado">Q 0.00</strong></div>
+                            <div><span>Total Facturas</span><strong id="lbl-total-fac">Q 0.00</strong></div>
+                            <div><span>Saldo</span><strong id="lbl-saldo">Q 0.00</strong></div>
+                            <div><span>Saldo Líquido</span><strong id="lbl-saldo-liq">Q 0.00</strong></div>
+                        </div>
+                        <button class="btn btn-success" id="btn-enviar-auth-bottom" onclick="enviarAAutorizarActual()">Enviar a Autorizar</button>
+                    </div>
+                </div>
+
+                <div class="alert-saldo" id="alert-saldo">
+                    <span><i class="fa-solid fa-triangle-exclamation"></i> ¡Revisar Saldo de la Caja Chica!</span>
+                    <span id="alert-saldo-dif"></span>
+                </div>
+            </section>
+
+            <!-- =================================================================
+                 VISTA 3: ADMINISTRACIÓN
+            ================================================================== -->
+            <section id="view-administracion" class="view-section">
+                <div class="view-header">
+                    <h2 class="page-title">Administración · Caja Chica</h2>
+                    <button class="btn btn-primary" onclick="openModal('modal-nuevo-fondo')"><i class="fa-solid fa-plus"></i> Nueva Caja Chica</button>
+                </div>
+                <div class="card-panel">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Caja Chica</th>
+                                    <th>Empresa</th>
+                                    <th>Responsable</th>
+                                    <th>Cuenta Contable</th>
+                                    <th class="text-right">Monto Asignado</th>
+                                    <th class="text-center">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-fondos"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- =================================================================
+                 VISTA 4: REPORTES
+            ================================================================== -->
+            <section id="view-reportes" class="view-section">
+                <div class="view-header">
+                    <h2 class="page-title">Reportes · Caja Chica</h2>
+                    <button class="btn btn-outline" onclick="window.print()"><i class="fa-solid fa-print"></i> Imprimir</button>
+                </div>
+                <div class="card-panel">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Operación</th>
+                                    <th>Caja Chica / Liquidación</th>
+                                    <th>Documento</th>
+                                    <th class="text-right">Monto</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-reportes"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+
+<!-- MODAL: LIQUIDACIÓN DE CAJA CHICA -->
+<div class="modal-backdrop" id="modal-nueva-liquidacion">
+    <div class="modal-box">
+        <div class="modal-header">
+            <span>Liquidación de Caja Chica</span>
+            <button class="btn btn-outline btn-sm" onclick="closeModal('modal-nueva-liquidacion')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="form-field">
+                <label>Tipo</label>
+                <select id="new-tipo" class="input-control" onchange="toggleTipoModal()">
+                    <option value="Liquidación de Caja Chica">Liquidación de Caja Chica</option>
+                    <option value="Cuenta por Liquidar">Cuenta por Liquidar</option>
+                    <option value="Reembolso">Reembolso</option>
+                </select>
+            </div>
+            <div class="form-field">
+                <label>Empresa</label>
+                <select id="new-empresa" class="input-control">
+                    <option value="14=> HOMELAND, SOCIEDAD ANONIMA">14=> HOMELAND, SOCIEDAD ANONIMA</option>
+                    <option value="15=> SERVICIOS INTEGRALES, S.A.">15=> SERVICIOS INTEGRALES, S.A.</option>
+                </select>
+            </div>
+            <div class="form-field" id="grp-caja">
+                <label>Caja Chica</label>
+                <select id="new-caja" class="input-control">
+                    <option value="COPE#4 | Caja chica Operativa|5000|Juan Pérez">COPE#4 | Caja chica Operativa</option>
+                    <option value="CADM#1 | Caja Chica Administración|3500|María López">CADM#1 | Caja Chica Administración</option>
+                </select>
+            </div>
+            <div class="form-field" id="grp-resp" style="display:none;">
+                <label>Responsable</label>
+                <input type="text" id="new-resp" class="input-control" placeholder="Nombre">
+            </div>
+            <div class="form-field" id="grp-monto" style="display:none;">
+                <label>Monto Asignado</label>
+                <input type="number" step="0.01" id="new-monto" class="input-control" value="1500.00">
+            </div>
+            <div class="form-field">
+                <label>Período</label>
+                <input type="text" id="new-periodo" class="input-control" value="Noviembre 2026">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('modal-nueva-liquidacion')">Cancelar</button>
+            <button class="btn btn-primary" onclick="crearLiquidacion()">Crear</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: CARGAS DE CAJA CHICA -->
+<div class="modal-backdrop" id="modal-carga-fondo">
+    <div class="modal-box">
+        <div class="modal-header">
+            <span>Cargas de Caja Chica</span>
+            <button class="btn btn-outline btn-sm" onclick="closeModal('modal-carga-fondo')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="form-field">
+                <label>Caja Chica</label>
+                <select id="carga-caja" class="input-control">
+                    <option value="COPE#4 | Caja chica Operativa">COPE#4 | Caja chica Operativa</option>
+                    <option value="CADM#1 | Caja Chica Administración">CADM#1 | Caja Chica Administración</option>
+                </select>
+            </div>
+            <div class="form-field">
+                <label>Cuenta Bancaria</label>
+                <select id="carga-banco" class="input-control">
+                    <option value="Banco Industrial · 001-458921-0">Banco Industrial · 001-458921-0</option>
+                    <option value="Banrural · 304-991204-5">Banrural · 304-991204-5</option>
+                </select>
+            </div>
+            <div class="form-field">
+                <label>Cheque / Referencia</label>
+                <input type="text" id="carga-ref" class="input-control" placeholder="Ej. CHQ-45012">
+            </div>
+            <div class="form-field">
+                <label>Monto</label>
+                <input type="number" step="0.01" id="carga-monto" class="input-control" value="2500.00">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('modal-carga-fondo')">Cancelar</button>
+            <button class="btn btn-primary" onclick="guardarCarga()">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: EMISIÓN DE CHEQUES DE DEVOLUCIÓN -->
+<div class="modal-backdrop" id="modal-cheque-devolucion">
+    <div class="modal-box">
+        <div class="modal-header">
+            <span>Emisión de Cheques de Devolución</span>
+            <button class="btn btn-outline btn-sm" onclick="closeModal('modal-cheque-devolucion')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="form-field">
+                <label>Liquidación</label>
+                <select id="dev-liq" class="input-control"></select>
+            </div>
+            <div class="form-field">
+                <label>No. Cheque / Documento</label>
+                <input type="text" id="dev-ref" class="input-control" placeholder="Ej. CHQ-10924">
+            </div>
+            <div class="form-field">
+                <label>Monto</label>
+                <input type="number" step="0.01" id="dev-monto" class="input-control" value="350.00">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('modal-cheque-devolucion')">Cancelar</button>
+            <button class="btn btn-primary" onclick="guardarDevolucion()">Emitir</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: CONTABILIZAR LIQUIDACIÓN -->
+<div class="modal-backdrop" id="modal-contabilizar">
+    <div class="modal-box" style="max-width:650px;">
+        <div class="modal-header">
+            <span>Contabilizar Liquidación</span>
+            <button class="btn btn-outline btn-sm" onclick="closeModal('modal-contabilizar')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body" id="body-contabilizar"></div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('modal-contabilizar')">Cancelar</button>
+            <button class="btn btn-success" onclick="confirmarContabilizar()">Contabilizar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: INSTRUCCIONES -->
+<div class="modal-backdrop" id="modal-instrucciones">
+    <div class="modal-box">
+        <div class="modal-header">
+            <span>Instrucciones de llenado</span>
+            <button class="btn btn-outline btn-sm" onclick="closeModal('modal-instrucciones')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body" style="font-size:13px; line-height:1.5;">
+            <p>1. Ingresa NIT, Serie, Número y Fecha del documento.</p>
+            <p>2. Marca Pequeño Contribuyente o Factura de Gasolina cuando aplique.</p>
+            <p>3. Asigna la cuenta contable y centro de costo antes de guardar.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" onclick="closeModal('modal-instrucciones')">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: NUEVA CAJA CHICA -->
+<div class="modal-backdrop" id="modal-nuevo-fondo">
+    <div class="modal-box">
+        <div class="modal-header">
+            <span>Nueva Caja Chica</span>
+            <button class="btn btn-outline btn-sm" onclick="closeModal('modal-nuevo-fondo')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="form-field"><label>Código</label><input type="text" id="f-cod" class="input-control" placeholder="Ej. CBOD#3"></div>
+            <div class="form-field"><label>Nombre</label><input type="text" id="f-nom" class="input-control" placeholder="Ej. Caja Chica Bodega"></div>
+            <div class="form-field"><label>Responsable</label><input type="text" id="f-resp" class="input-control"></div>
+            <div class="form-field"><label>Cuenta Contable</label><input type="text" id="f-cta" class="input-control" value="1101.02.04 - Caja Chica"></div>
+            <div class="form-field"><label>Monto Asignado</label><input type="number" id="f-monto" class="input-control" value="3000"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('modal-nuevo-fondo')">Cancelar</button>
+            <button class="btn btn-primary" onclick="guardarFondo()">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: IMPRESIÓN -->
+<div class="modal-backdrop" id="modal-print">
+    <div class="modal-box" style="max-width:780px;">
+        <div class="modal-header no-print">
+            <span>Liquidación de Caja Chica</span>
+            <div style="display:flex; gap:8px;">
+                <button class="btn btn-primary btn-sm" onclick="window.print()">Imprimir</button>
+                <button class="btn btn-outline btn-sm" onclick="closeModal('modal-print')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+        <div class="modal-body" id="body-print"></div>
+    </div>
+</div>
+
+<!-- MODAL: NUEVO PROVEEDOR RÁPIDO -->
+<div class="modal-backdrop" id="modal-nuevo-proveedor">
+    <div class="modal-box">
+        <div class="modal-header">
+            <span>Registro Rápido de Proveedor</span>
+            <button class="btn btn-outline btn-sm" onclick="closeModal('modal-nuevo-proveedor')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="form-field"><label>NIT:</label><input type="text" id="np-nit" class="input-control" placeholder="Ej. 1234567-8"></div>
+            <div class="form-field"><label>Razón Social / Nombre:</label><input type="text" id="np-nombre" class="input-control" placeholder="Nombre del proveedor"></div>
+            <div class="form-field"><label>Régimen Fiscal:</label>
+                <select id="np-regimen" class="input-control">
+                    <option value="general">Régimen General IVA (12%)</option>
+                    <option value="pequeno">Pequeño Contribuyente (5%)</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('modal-nuevo-proveedor')">Cancelar</button>
+            <button class="btn btn-primary" onclick="guardarProveedorRapido()">Guardar y Seleccionar</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+    let liquidaciones = [
+        {
+            id: 'LIQ-2026-001', tipo: 'Liquidación de Caja Chica', empresa: '14=> HOMELAND, SOCIEDAD ANONIMA',
+            caja: 'COPE#4 | Caja chica Operativa', responsable: 'Juan Pérez', periodo: 'Noviembre 2026',
+            asignado: 5000.00, estado: 'save',
+            docs: [
+                { fecha: '2026-11-12', tipo: 'Factura', serie: 'A901', numero: '45120', nit: '894512-3', proveedor: 'Librería Progreso, S.A.', desc: 'Papelería de oficina', iva: 102.00, total: 952.00 },
+                { fecha: '2026-11-14', tipo: 'Factura', serie: 'G102', numero: '88341', nit: '334120-9', proveedor: 'Gasolinera Shell Reforma', desc: 'Combustible', iva: 37.20, total: 389.70 }
+            ]
+        },
+        {
+            id: 'LIQ-2026-002', tipo: 'Cuenta por Liquidar', empresa: '14=> HOMELAND, SOCIEDAD ANONIMA',
+            caja: 'Anticipo Viáticos #ANT-089', responsable: 'Ana Morales', periodo: 'Noviembre 2026',
+            asignado: 2000.00, estado: 'send',
+            docs: [
+                { fecha: '2026-11-10', tipo: 'Factura', serie: 'H400', numero: '11209', nit: '551234-1', proveedor: 'Hotel Modelo Xela', desc: 'Hospedaje', iva: 132.00, total: 1232.00 }
+            ]
+        },
+        {
+            id: 'LIQ-2026-003', tipo: 'Liquidación de Caja Chica', empresa: '14=> HOMELAND, SOCIEDAD ANONIMA',
+            caja: 'CADM#1 | Caja Chica Administración', responsable: 'María López', periodo: 'Noviembre 2026',
+            asignado: 3500.00, estado: 'autorizada',
+            docs: [
+                { fecha: '2026-11-05', tipo: 'Factura', serie: 'F110', numero: '7712', nit: '991230-4', proveedor: 'Ferretería La Palma', desc: 'Mantenimiento', iva: 174.00, total: 1624.00 }
+            ]
+        },
+        {
+            id: 'LIQ-2026-004', tipo: 'Reembolso', empresa: '15=> SERVICIOS INTEGRALES, S.A.',
+            caja: 'Reembolso Operaciones', responsable: 'Carlos Ruiz', periodo: 'Noviembre 2026',
+            asignado: 0.00, estado: 'contabilizada',
+            docs: [
+                { fecha: '2026-11-03', tipo: 'Factura', serie: 'S991', numero: '3021', nit: '441239-8', proveedor: 'Soporte Técnico IT, S.A.', desc: 'Equipo red', iva: 138.00, total: 1288.00 }
+            ]
+        },
+        {
+            id: 'LIQ-2026-005', tipo: 'Liquidación de Caja Chica', empresa: '14=> HOMELAND, SOCIEDAD ANONIMA',
+            caja: 'COPE#4 | Caja chica Operativa', responsable: 'Juan Pérez', periodo: 'Octubre 2026',
+            asignado: 5000.00, estado: 'cerrada',
+            docs: [
+                { fecha: '2026-10-28', tipo: 'Factura', serie: 'C300', numero: '6120', nit: '661234-5', proveedor: 'Mensajería Express GT', desc: 'Envíos', iva: 294.00, total: 2744.00 }
+            ]
+        }
+    ];
+
+    let fondos = [
+        { codigo: 'COPE#4', nombre: 'Caja chica Operativa', empresa: '14=> HOMELAND, SOCIEDAD ANONIMA', responsable: 'Juan Pérez', cuenta: '1101.02.01 - Caja Chica Operativa', monto: 5000.00, activo: true },
+        { codigo: 'CADM#1', nombre: 'Caja Chica Administración', empresa: '14=> HOMELAND, SOCIEDAD ANONIMA', responsable: 'María López', cuenta: '1101.02.02 - Caja Chica Admin', monto: 3500.00, activo: true }
+    ];
+
+    let reportesMov = [
+        { fecha: '2026-11-01', op: 'Cargas de Caja Chica', ref: 'COPE#4 | Caja chica Operativa', doc: 'CHQ-44980', monto: 2744.00 },
+        { fecha: '2026-11-11', op: 'Emisión de Cheques de Devolución', ref: 'LIQ-2026-002', doc: 'CHQ-10912', monto: 350.00 }
+    ];
+
+    let statusFilter = 'ALL';
+    let currentLiqId = 'LIQ-2026-001';
+    let currentDocStep = 1;
+    let editingDocIndex = null;
+    let contabId = null;
+
+    function toggleSubmenu(subId, menuId) {
+        document.getElementById(subId).classList.toggle('open');
+        document.getElementById(menuId).classList.toggle('open');
+    }
+    function toggleDarkMode() {
+        document.body.classList.toggle('dark-mode');
+        localStorage.setItem('tributum_dark', document.body.classList.contains('dark-mode'));
+    }
+    if (localStorage.getItem('tributum_dark') === 'true') document.body.classList.add('dark-mode');
+
+    function showView(id, el) {
+        document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        if (el) {
+            document.querySelectorAll('.submenu li a').forEach(a => a.classList.remove('sub-active'));
+            el.classList.add('sub-active');
+        }
+    }
+    function volverAListado() {
+        showView('view-operaciones', document.getElementById('link-operaciones'));
+        renderLiquidaciones();
+    }
+    function openModal(id) {
+        if (id === 'modal-cheque-devolucion') {
+            document.getElementById('dev-liq').innerHTML = liquidaciones.map(l => `<option value="${l.id}">${l.id} - ${l.caja}</option>`).join('');
+        }
+        document.getElementById(id).classList.add('open');
+    }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+    function toast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 2800);
+    }
+    function fmt(n) { return 'Q ' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+    /* --- NAVEGACIÓN DEL WIZARD DE 4 TABS --- */
+    function goToDocStep(step) {
+        currentDocStep = step;
+        document.querySelectorAll('.doc-step-panel').forEach(p => p.style.display = 'none');
+        document.getElementById('doc-step-' + step).style.display = 'block';
+
+        document.querySelectorAll('#cc-wizard-tabs .wizard-tab').forEach(btn => {
+            const s = parseInt(btn.getAttribute('data-step'), 10);
+            btn.classList.remove('active', 'done');
+            if (s === step) btn.classList.add('active');
+            else if (s < step) btn.classList.add('done');
+        });
+
+        document.getElementById('btn-wiz-prev').style.display = step > 1 ? 'inline-flex' : 'none';
+        document.getElementById('btn-wiz-next').style.display = step < 4 ? 'inline-flex' : 'none';
+        document.getElementById('btn-wiz-save').style.display = step === 4 ? 'inline-flex' : 'none';
+        document.getElementById('btn-wiz-save-print').style.display = step === 4 ? 'inline-flex' : 'none';
+
+        updateDocReview();
+    }
+
+    function changeDocStep(delta) {
+        const next = Math.min(4, Math.max(1, currentDocStep + delta));
+        goToDocStep(next);
+    }
+
+    function jumpToDocStepAndFocus(step, fieldId) {
+        goToDocStep(step);
+        setTimeout(() => {
+            const el = document.getElementById(fieldId);
+            if (el) {
+                el.focus();
+                if (typeof el.select === 'function') el.select();
+            }
+        }, 60);
+    }
+
+    function updateDocReview() {
+        const provRaw = (document.getElementById('doc-proveedor').value || '').trim();
+        const provDisplay = provRaw || 'Sin proveedor asignado';
+        const op = document.getElementById('doc-operacion').value;
+        const tipo = document.getElementById('doc-tipo').value;
+        const insumo = document.getElementById('doc-insumo').value;
+        const serie = (document.getElementById('doc-serie').value || '').trim();
+        const num = (document.getElementById('doc-numero').value || '').trim();
+        const dteDisplay = (serie || num) ? `${serie || '—'} · ${num || '—'}` : '— · —';
+        const fechaDoc = document.getElementById('doc-fecha').value || '—';
+        const fechaPago = document.getElementById('doc-fecha-pago').value || '—';
+        const mesIva = document.getElementById('doc-mes-iva').value || '—';
+        const cuenta = document.getElementById('doc-cuenta-gasto').value;
+        const desc = (document.getElementById('doc-desc').value || '').trim() || 'Sin descripción';
+        const moneda = document.getElementById('doc-moneda').value;
+        const tc = Number(document.getElementById('doc-tc').value || 1).toFixed(2);
+
+        const total = parseFloat(document.getElementById('doc-total').value) || 0;
+        const libre = parseFloat(document.getElementById('doc-libre').value) || 0;
+        const sujeto = parseFloat(document.getElementById('doc-sujeto').value) || 0;
+        const iva = parseFloat(document.getElementById('doc-iva').value) || 0;
+        const base = +(libre + sujeto).toFixed(2);
+
+        const isEsp = document.getElementById('chk-fac-especial').checked;
+        const retIsr = document.getElementById('chk-reten-isr').checked || isEsp;
+        const retIva = document.getElementById('chk-reten-iva').checked || isEsp;
+        let isrMonto = 0;
+        if (retIsr && base > 0) {
+            isrMonto = base <= 30000 ? +(base * 0.05).toFixed(2) : +(1500 + (base - 30000) * 0.07).toFixed(2);
+        }
+        let retIvaMonto = 0;
+        if (retIva) {
+            retIvaMonto = isEsp ? iva : +(iva * 0.15).toFixed(2);
+        }
+        const netoPagar = +(total - isrMonto - retIvaMonto).toFixed(2);
+
+        // Contexto Tab 3
+        document.getElementById('acc-ctx-doc').textContent = `${provDisplay} · ${dteDisplay}`;
+        document.getElementById('acc-ctx-base').textContent = fmt(base);
+        document.getElementById('acc-ctx-iva').textContent = fmt(iva);
+        document.getElementById('acc-ctx-ret').textContent = fmt(isrMonto + retIvaMonto);
+
+        const flags = [];
+        if (document.getElementById('chk-peq-contrib').checked) flags.push('Peq. Contrib.');
+        else if (document.getElementById('chk-iva-credito').checked) flags.push('IVA 12%');
+        else flags.push('Exento IVA');
+        if (document.getElementById('chk-gasolina').checked) flags.push('IDP');
+        if (retIsr) flags.push('Ret. ISR');
+        if (retIva) flags.push('Ret. IVA');
+        document.getElementById('acc-ctx-flags').textContent = flags.join(' + ') || 'IVA 12%';
+
+        // Tab 4 Resumen
+        document.getElementById('rev-prov').textContent = provDisplay;
+        document.getElementById('rev-dte').textContent = dteDisplay;
+        document.getElementById('rev-clasificacion').textContent = `${op} · ${tipo} · ${insumo}`;
+        document.getElementById('rev-fechas').textContent = `${fechaDoc} · Vence ${fechaPago}`;
+        document.getElementById('rev-mes-iva').textContent = mesIva;
+        document.getElementById('rev-cuenta').textContent = cuenta;
+        document.getElementById('rev-desc').textContent = desc;
+
+        document.getElementById('rev-moneda').textContent = `${moneda} (${tc})`;
+        document.getElementById('rev-libre').textContent = fmt(libre);
+        document.getElementById('rev-sujeto').textContent = fmt(sujeto);
+        document.getElementById('rev-iva').textContent = fmt(iva);
+        document.getElementById('rev-total-fact').textContent = fmt(total);
+        document.getElementById('rev-isr').textContent = fmt(isrMonto);
+        document.getElementById('rev-retiva').textContent = fmt(retIvaMonto);
+        document.getElementById('rev-neto-pagar').textContent = fmt(netoPagar);
+
+        const badge = document.getElementById('rev-status-badge');
+        if (provRaw && total > 0) {
+            badge.className = 'badge badge-ok';
+            badge.innerHTML = '<i class="fa-solid fa-circle-check"></i> Listo para Grabar';
+        } else {
+            badge.className = 'badge badge-warn';
+            badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Verifica proveedor o monto mayor a Q 0.00';
+        }
+    }
+
+    function setStatusFilter(st, btn) {
+        statusFilter = st;
+        document.querySelectorAll('#status-pills .quick-pill').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderLiquidaciones();
+    }
+
+    function badgeEstado(st) {
+        const map = {
+            'save': '<span class="badge badge-warn">En Captura (save)</span>',
+            'send': '<span class="badge badge-info">Autorizar Liquidaciones (send)</span>',
+            'autorizada': '<span class="badge badge-purple">Contabilizar Liquidación</span>',
+            'contabilizada': '<span class="badge badge-ok">Cierre de Caja Chica</span>',
+            'cerrada': '<span class="badge badge-neutral">Cerrada</span>'
+        };
+        return map[st] || st;
+    }
+
+    function renderLiquidaciones() {
+        const q = document.getElementById('search-input').value.toLowerCase();
+        const emp = document.getElementById('filter-empresa').value;
+        const tipo = document.getElementById('filter-tipo').value;
+
+        const rows = liquidaciones.filter(l => {
+            return (statusFilter === 'ALL' || l.estado === statusFilter) &&
+                   (emp === 'ALL' || l.empresa === emp) &&
+                   (tipo === 'ALL' || l.tipo === tipo) &&
+                   (l.id.toLowerCase().includes(q) || l.caja.toLowerCase().includes(q) || l.responsable.toLowerCase().includes(q));
+        });
+
+        const tbody = document.getElementById('tbody-liquidaciones');
+        if (!rows.length) {
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center" style="padding:20px; color:var(--text-muted);">Sin registros</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = rows.map(l => {
+            const totalFac = l.docs.reduce((s, d) => s + d.total, 0);
+            const saldo = l.tipo === 'Reembolso' ? -totalFac : (l.asignado - totalFac);
+            let btns = '';
+            if (l.estado === 'save') {
+                btns = `<div class="actions-group">
+                            <button class="btn-tbl btn-tbl-primary" onclick="abrirCaptura('${l.id}')"><i class="fa-solid fa-pen-to-square"></i> Capturar</button>
+                            <button class="btn-tbl btn-tbl-neutral" onclick="cambiarEstado('${l.id}','send')"><i class="fa-solid fa-paper-plane"></i> Enviar</button>
+                        </div>`;
+            } else if (l.estado === 'send') {
+                btns = `<div class="actions-group">
+                            <button class="btn-tbl btn-tbl-primary" onclick="cambiarEstado('${l.id}','autorizada')"><i class="fa-solid fa-check"></i> Autorizar</button>
+                            <button class="btn-tbl btn-tbl-danger-soft" onclick="cambiarEstado('${l.id}','save')"><i class="fa-solid fa-xmark"></i> Rechazar</button>
+                        </div>`;
+            } else if (l.estado === 'autorizada') {
+                btns = `<div class="actions-group single-action">
+                            <button class="btn-tbl btn-tbl-primary" onclick="abrirContabilizar('${l.id}')"><i class="fa-solid fa-book"></i> Contabilizar</button>
+                        </div>`;
+            } else if (l.estado === 'contabilizada') {
+                btns = `<div class="actions-group single-action">
+                            <button class="btn-tbl btn-tbl-primary" onclick="cerrarCaja('${l.id}')"><i class="fa-solid fa-lock"></i> Cerrar Caja</button>
+                        </div>`;
+            } else {
+                btns = `<div class="actions-group single-action">
+                            <button class="btn-tbl btn-tbl-neutral" onclick="imprimirLiquidacion('${l.id}')"><i class="fa-solid fa-print"></i> Imprimir</button>
+                        </div>`;
+            }
+
+            return `<tr>
+                <td><strong>${l.id}</strong></td>
+                <td>${l.tipo}</td>
+                <td>${l.caja}<br><small style="color:var(--text-muted);">${l.responsable}</small></td>
+                <td>${l.periodo}</td>
+                <td class="text-right">${l.tipo === 'Reembolso' ? '-' : fmt(l.asignado)}</td>
+                <td class="text-right">${fmt(totalFac)}</td>
+                <td class="text-right" style="color:${saldo < 0 ? 'var(--danger-color)' : 'inherit'}; font-weight:600;">${fmt(saldo)}</td>
+                <td class="text-center">${badgeEstado(l.estado)}</td>
+                <td class="text-right" style="white-space:nowrap;">${btns}</td>
+            </tr>`;
+        }).join('');
+    }
+
+    function cambiarEstado(id, st) {
+        const l = liquidaciones.find(x => x.id === id);
+        if (!l) return;
+        l.estado = st;
+        renderLiquidaciones();
+        toast('Estado actualizado');
+    }
+
+    function toggleTipoModal() {
+        const t = document.getElementById('new-tipo').value;
+        document.getElementById('grp-caja').style.display = t === 'Liquidación de Caja Chica' ? 'flex' : 'none';
+        document.getElementById('grp-resp').style.display = t !== 'Liquidación de Caja Chica' ? 'flex' : 'none';
+        document.getElementById('grp-monto').style.display = t === 'Cuenta por Liquidar' ? 'flex' : 'none';
+    }
+
+    function crearLiquidacion() {
+        const tipo = document.getElementById('new-tipo').value;
+        const empresa = document.getElementById('new-empresa').value;
+        const periodo = document.getElementById('new-periodo').value;
+        let caja = '', resp = '', asignado = 0;
+
+        if (tipo === 'Liquidación de Caja Chica') {
+            const p = document.getElementById('new-caja').value.split('|');
+            caja = `${p[0]} | ${p[1]}`;
+            asignado = parseFloat(p[2]);
+            resp = p[3];
+        } else {
+            resp = document.getElementById('new-resp').value || 'Usuario';
+            caja = `${tipo} · ${resp}`;
+            asignado = tipo === 'Cuenta por Liquidar' ? (parseFloat(document.getElementById('new-monto').value) || 0) : 0;
+        }
+
+        const id = `LIQ-2026-00${liquidaciones.length + 1}`;
+        liquidaciones.unshift({ id, tipo, empresa, caja, responsable: resp, periodo, asignado, estado: 'save', docs: [] });
+        closeModal('modal-nueva-liquidacion');
+        abrirCaptura(id);
+    }
+
+    function abrirCaptura(id) {
+        currentLiqId = id;
+        const l = liquidaciones.find(x => x.id === id);
+        document.getElementById('cap-titulo').textContent = `${l.tipo} · ${l.id}`;
+        document.getElementById('cap-badge').outerHTML = badgeEstado(l.estado).replace('class="badge', 'id="cap-badge" class="badge');
+        document.getElementById('cap-empresa').value = l.empresa;
+        document.getElementById('cap-caja-lbl').textContent = l.caja;
+
+        const editable = l.estado === 'save';
+        document.getElementById('panel-captura-form').style.display = editable ? 'block' : 'none';
+        document.getElementById('btn-enviar-auth').style.display = editable ? 'inline-flex' : 'none';
+        document.getElementById('btn-enviar-auth-bottom').style.display = editable ? 'inline-flex' : 'none';
+
+        goToDocStep(1);
+        resetCC();
+        renderDocs();
+        showView('view-captura', null);
+    }
+
+    function autocompletarProveedor() {
+        const val = document.getElementById('doc-proveedor').value.trim();
+        const db = {
+            '894512-3': '894512-3 · Librería Progreso, S.A.',
+            '334120-9': '334120-9 · Gasolinera Shell Reforma',
+            '551234-1': '551234-1 · Hotel Modelo Xela'
+        };
+        if (db[val]) {
+            document.getElementById('doc-proveedor').value = db[val];
+            updateDocReview();
+        }
+    }
+
+    function guardarProveedorRapido() {
+        const nit = document.getElementById('np-nit').value.trim() || 'CF';
+        const nom = document.getElementById('np-nombre').value.trim();
+        if (!nom) { toast('Ingresa el nombre del proveedor'); return; }
+        document.getElementById('doc-proveedor').value = `${nit} · ${nom}`;
+        if (document.getElementById('np-regimen').value === 'pequeno') {
+            document.getElementById('chk-peq-contrib').checked = true;
+            document.getElementById('chk-iva-credito').checked = false;
+        }
+        closeModal('modal-nuevo-proveedor');
+        recalcularDoc();
+        toast('Proveedor agregado y seleccionado');
+    }
+
+    function toggleGasolinaDoc() {
+        const isGas = document.getElementById('chk-gasolina').checked;
+        document.getElementById('panel-gasolina').classList.toggle('open', isGas);
+        recalcularDoc();
+    }
+
+    function toggleManualDocMode() {
+        const manual = document.getElementById('chk-manual').checked;
+        ['doc-libre', 'doc-sujeto', 'doc-iva'].forEach(id => {
+            const el = document.getElementById(id);
+            el.readOnly = !manual;
+            el.classList.toggle('readonly', !manual);
+        });
+        if (!manual) recalcularDoc();
+    }
+
+    function recalcularDoc() {
+        if (document.getElementById('chk-manual').checked) return;
+
+        const total = parseFloat(document.getElementById('doc-total').value) || 0;
+        const hasIva = document.getElementById('chk-iva-credito').checked;
+        const isPeq = document.getElementById('chk-peq-contrib').checked;
+        const isGas = document.getElementById('chk-gasolina').checked;
+        const isEsp = document.getElementById('chk-fac-especial').checked;
+        const retIsr = document.getElementById('chk-reten-isr').checked || isEsp;
+        const retIva = document.getElementById('chk-reten-iva').checked || isEsp;
+
+        let libre = 0, sujeto = 0, iva = 0;
+
+        if (isGas) {
+            const tasaIdp = parseFloat(document.getElementById('gas-tipo').value) || 0;
+            const galones = parseFloat(document.getElementById('gas-galones').value) || 0;
+            libre = +(tasaIdp * galones).toFixed(2);
+            document.getElementById('gas-idp-total').value = libre.toFixed(2);
+
+            const remanente = Math.max(0, total - libre);
+            sujeto = hasIva ? +(remanente / 1.12).toFixed(2) : remanente;
+            iva = hasIva ? +(remanente - sujeto).toFixed(2) : 0;
+        } else if (isPeq || !hasIva) {
+            libre = total;
+            sujeto = 0;
+            iva = 0;
+        } else {
+            libre = 0;
+            sujeto = +(total / 1.12).toFixed(2);
+            iva = +(total - sujeto).toFixed(2);
+        }
+
+        document.getElementById('doc-libre').value = libre.toFixed(2);
+        document.getElementById('doc-sujeto').value = sujeto.toFixed(2);
+        document.getElementById('doc-iva').value = iva.toFixed(2);
+
+        const base = +(libre + sujeto).toFixed(2);
+        let isrMonto = 0;
+        if (retIsr && base > 0) {
+            isrMonto = base <= 30000
+                ? +(base * 0.05).toFixed(2)
+                : +(1500 + (base - 30000) * 0.07).toFixed(2);
+        }
+
+        let retIvaMonto = 0;
+        if (retIva) {
+            retIvaMonto = isEsp ? iva : +(iva * 0.15).toFixed(2);
+        }
+
+        updateDocSummaryAndEntry(base, iva, isrMonto, retIvaMonto, total);
+    }
+
+    function recalcDocFromManual() {
+        const libre = parseFloat(document.getElementById('doc-libre').value) || 0;
+        const sujeto = parseFloat(document.getElementById('doc-sujeto').value) || 0;
+        const iva = parseFloat(document.getElementById('doc-iva').value) || 0;
+        const total = +(libre + sujeto + iva).toFixed(2);
+        document.getElementById('doc-total').value = total.toFixed(2);
+
+        const base = +(libre + sujeto).toFixed(2);
+        const retIsr = document.getElementById('chk-reten-isr').checked;
+        const isrMonto = retIsr ? +(base * 0.05).toFixed(2) : 0;
+        updateDocSummaryAndEntry(base, iva, isrMonto, 0, total);
+    }
+
+    function updateDocSummaryAndEntry(base, iva, isr, retIva, total) {
+        const netoPagar = +(total - isr - retIva).toFixed(2);
+
+        document.getElementById('lbl-base').textContent = fmt(base);
+        document.getElementById('lbl-iva').textContent = fmt(iva);
+        document.getElementById('lbl-isr').textContent = fmt(isr);
+        document.getElementById('lbl-retiva').textContent = fmt(retIva);
+        document.getElementById('lbl-neto').textContent = fmt(netoPagar);
+
+        document.getElementById('bar-total-fact').textContent = fmt(total);
+        document.getElementById('bar-neto-pagar').textContent = fmt(netoPagar);
+
+        const rowGasto = document.getElementById('row-gasto-debe');
+        if (rowGasto) rowGasto.value = base.toFixed(2);
+        const rowIva = document.getElementById('row-iva-debe');
+        if (rowIva) rowIva.value = iva.toFixed(2);
+        const rowIsr = document.getElementById('row-isr-haber');
+        if (rowIsr) rowIsr.value = (isr + retIva).toFixed(2);
+        const rowCaja = document.getElementById('row-caja-haber');
+        if (rowCaja) rowCaja.value = netoPagar.toFixed(2);
+
+        recalcPartidaTotals();
+        updateDocReview();
+    }
+
+    function recalcPartidaTotals() {
+        let totDebe = 0, totHaber = 0;
+        document.querySelectorAll('#tbody-cc tr').forEach(tr => {
+            const inputs = tr.querySelectorAll('input[type="number"]');
+            if (inputs.length >= 2) {
+                totDebe += parseFloat(inputs[0].value) || 0;
+                totHaber += parseFloat(inputs[1].value) || 0;
+            }
+        });
+        document.getElementById('tot-debe').textContent = fmt(totDebe);
+        document.getElementById('tot-haber').textContent = fmt(totHaber);
+
+        const badge = document.getElementById('badge-cuadre');
+        if (Math.abs(totDebe - totHaber) < 0.01) {
+            badge.className = 'badge badge-ok';
+            badge.innerHTML = '<i class="fa-solid fa-scale-balanced"></i> Partida Cuadrada';
+        } else {
+            badge.className = 'badge badge-danger';
+            badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Descuadre ' + fmt(Math.abs(totDebe - totHaber));
+        }
+    }
+
+    function resetCC() {
+        const l = liquidaciones.find(x => x.id === currentLiqId);
+        const cajaTxt = l ? `${l.caja} (Cierre automático)` : '1101-02-001 · Caja Chica (Cierre automático)';
+        const elCaja = document.getElementById('row-caja-cuenta');
+        if (elCaja) elCaja.value = cajaTxt;
+        document.querySelectorAll('#tbody-cc tr.extra-gasto-row').forEach(tr => tr.remove());
+        recalcPartidaTotals();
+    }
+
+    function agregarFilaCC() {
+        const tbody = document.getElementById('tbody-cc');
+        const ivaRow = document.getElementById('row-iva-linea');
+        const tr = document.createElement('tr');
+        tr.className = 'extra-gasto-row';
+        tr.innerHTML = `
+            <td><div style="display:flex; gap:6px;"><button type="button" class="btn btn-outline btn-sm" onclick="this.closest('tr').remove(); recalcPartidaTotals();" title="Quitar línea"><i class="fa-solid fa-trash"></i></button><input type="text" class="input-control" placeholder="Línea adicional de gasto..."></div></td>
+            <td><select class="input-control"><option>5102-01-001 · Papelería y Útiles</option><option>5202-02-029 · Servicios de Computación</option><option>5104-02-001 · Servicios Básicos</option><option>5106-01-003 · Combustibles y Lubricantes</option></select></td>
+            <td><select class="input-control"><option>Operaciones</option><option>Administración</option><option>Ventas</option></select></td>
+            <td><input type="number" step="0.01" class="input-control text-right" value="0.00" oninput="recalcPartidaTotals()"></td>
+            <td><input type="number" step="0.01" class="input-control text-right readonly" value="0.00" readonly></td>
+        `;
+        tbody.insertBefore(tr, ivaRow);
+    }
+
+    function limpiarDoc() {
+        ['doc-proveedor', 'doc-serie', 'doc-numero', 'doc-desc', 'row-gasto-desc'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        document.getElementById('doc-total').value = '0.00';
+        document.getElementById('doc-libre').value = '0.00';
+        document.getElementById('gas-galones').value = '0';
+        document.getElementById('chk-iva-credito').checked = true;
+        ['chk-reten-isr', 'chk-reten-iva', 'chk-peq-contrib', 'chk-gasolina', 'chk-fac-especial', 'chk-manual'].forEach(id => {
+            document.getElementById(id).checked = false;
+        });
+        document.getElementById('panel-gasolina').classList.remove('open');
+        toggleManualDocMode();
+        recalcularDoc();
+        editingDocIndex = null;
+        const badgeEdit = document.getElementById('badge-edit-mode');
+        if (badgeEdit) badgeEdit.style.display = 'none';
+        const btnSave = document.getElementById('btn-wiz-save');
+        if (btnSave) btnSave.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar';
+        resetCC();
+        goToDocStep(1);
+    }
+
+    function editarDoc(i) {
+        const l = liquidaciones.find(x => x.id === currentLiqId);
+        const d = l.docs[i];
+        if (!d) return;
+
+        editingDocIndex = i;
+        document.getElementById('badge-edit-mode').style.display = 'inline-flex';
+        document.getElementById('btn-wiz-save').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Actualizar';
+
+        document.getElementById('doc-proveedor').value = d.nit && d.nit !== 'CF' ? `${d.nit} · ${d.proveedor}` : d.proveedor;
+        document.getElementById('doc-mes-iva').value = d.mesIva || (d.fecha ? d.fecha.slice(0, 7) : '2026-11');
+        document.getElementById('doc-fecha').value = d.fecha || '2026-11-16';
+        document.getElementById('doc-fecha-pago').value = d.fechaPago || d.fecha || '2026-11-28';
+        document.getElementById('doc-operacion').value = d.operacion || 'Local';
+        document.getElementById('doc-tipo').value = d.tipo || 'Factura';
+        document.getElementById('doc-insumo').value = d.insumo || 'Bienes';
+        document.getElementById('doc-serie').value = d.serie === 'S/N' ? '' : (d.serie || '');
+        document.getElementById('doc-numero').value = d.numero === '0' ? '' : (d.numero || '');
+        document.getElementById('doc-desc').value = d.desc === '-' ? '' : (d.desc || '');
+        if (d.cuentaGasto) document.getElementById('doc-cuenta-gasto').value = d.cuentaGasto;
+        if (d.centroCosto) document.getElementById('doc-centro-costo').value = d.centroCosto;
+
+        document.getElementById('chk-fac-especial').checked = !!d.facEspecial;
+        document.getElementById('chk-iva-credito').checked = d.iva > 0;
+        document.getElementById('chk-reten-isr').checked = !!d.retenIsr;
+        document.getElementById('chk-reten-iva').checked = !!d.retenIva;
+        document.getElementById('chk-peq-contrib').checked = !!d.peqContrib;
+        document.getElementById('chk-gasolina').checked = !!d.gasolina;
+        document.getElementById('panel-gasolina').classList.toggle('open', !!d.gasolina);
+        if (d.gasTipo) document.getElementById('gas-tipo').value = d.gasTipo;
+        if (d.gasGalones) document.getElementById('gas-galones').value = d.gasGalones;
+
+        document.getElementById('doc-total').value = Number(d.total || 0).toFixed(2);
+        recalcularDoc();
+        renderDocs();
+        goToDocStep(1);
+        document.getElementById('panel-captura-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        toast('Documento cargado para edición');
+    }
+
+    function guardarDoc(andPrint) {
+        const total = parseFloat(document.getElementById('doc-total').value) || 0;
+        const provRaw = document.getElementById('doc-proveedor').value.trim();
+        if (!provRaw || total <= 0) {
+            toast('Completa Proveedor y Total Facturado mayor a Q 0.00');
+            goToDocStep(!provRaw ? 1 : 2);
+            return;
+        }
+
+        let nit = 'CF', proveedor = provRaw;
+        if (provRaw.includes('·')) {
+            const parts = provRaw.split('·');
+            nit = parts[0].trim();
+            proveedor = parts.slice(1).join('·').trim();
+        }
+
+        const docObj = {
+            fecha: document.getElementById('doc-fecha').value,
+            fechaPago: document.getElementById('doc-fecha-pago').value,
+            mesIva: document.getElementById('doc-mes-iva').value,
+            operacion: document.getElementById('doc-operacion').value,
+            tipo: document.getElementById('doc-tipo').value,
+            insumo: document.getElementById('doc-insumo').value,
+            serie: document.getElementById('doc-serie').value || 'S/N',
+            numero: document.getElementById('doc-numero').value || '0',
+            nit,
+            proveedor,
+            desc: document.getElementById('doc-desc').value || '-',
+            cuentaGasto: document.getElementById('doc-cuenta-gasto').value,
+            centroCosto: document.getElementById('doc-centro-costo').value,
+            facEspecial: document.getElementById('chk-fac-especial').checked,
+            retenIsr: document.getElementById('chk-reten-isr').checked,
+            retenIva: document.getElementById('chk-reten-iva').checked,
+            peqContrib: document.getElementById('chk-peq-contrib').checked,
+            gasolina: document.getElementById('chk-gasolina').checked,
+            gasTipo: document.getElementById('gas-tipo').value,
+            gasGalones: document.getElementById('gas-galones').value,
+            iva: parseFloat(document.getElementById('doc-iva').value) || 0,
+            total
+        };
+
+        const l = liquidaciones.find(x => x.id === currentLiqId);
+        const isEdit = editingDocIndex !== null;
+        if (isEdit) {
+            l.docs[editingDocIndex] = docObj;
+        } else {
+            l.docs.push(docObj);
+        }
+
+        limpiarDoc();
+        renderDocs();
+        toast(isEdit ? 'Factura actualizada correctamente' : 'Factura guardada en la liquidación');
+        if (andPrint) imprimirLiquidacion(currentLiqId);
+    }
+
+    function renderDocs() {
+        const l = liquidaciones.find(x => x.id === currentLiqId);
+        const tbody = document.getElementById('tbody-docs');
+        tbody.innerHTML = l.docs.length ? l.docs.map((d, i) => `<tr class="${editingDocIndex === i ? 'cxp-row-highlight' : ''}">
+            <td>${d.fecha}</td><td>${d.tipo}</td><td>${d.serie}-${d.numero}</td><td>${d.nit}</td>
+            <td>${d.proveedor}</td><td>${d.desc}</td><td class="text-right">${fmt(d.iva)}</td>
+            <td class="text-right"><strong>${fmt(d.total)}</strong></td>
+            <td class="text-center" style="white-space:nowrap;">${l.estado === 'save' ? `<div style="display:inline-flex; gap:5px; justify-content:center;">
+                <button type="button" class="btn btn-outline btn-sm" onclick="editarDoc(${i})" title="Editar documento"><i class="fa-solid fa-pen"></i></button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="quitarDoc(${i})" title="Eliminar documento"><i class="fa-solid fa-trash"></i></button>
+            </div>` : '-'}</td>
+        </tr>`).join('') : '<tr><td colspan="9" class="text-center" style="padding:18px; color:var(--text-muted);">Sin documentos</td></tr>';
+
+        const totalFac = l.docs.reduce((s, d) => s + d.total, 0);
+        const saldo = l.tipo === 'Reembolso' ? 0 : (l.asignado - totalFac);
+        document.getElementById('lbl-asignado').textContent = l.tipo === 'Reembolso' ? 'Reembolso' : fmt(l.asignado);
+        document.getElementById('lbl-total-fac').textContent = fmt(totalFac);
+        document.getElementById('lbl-saldo').textContent = fmt(saldo);
+        document.getElementById('lbl-saldo-liq').textContent = fmt(l.tipo === 'Reembolso' ? totalFac : saldo);
+
+        const alert = document.getElementById('alert-saldo');
+        if (l.tipo !== 'Reembolso' && totalFac > l.asignado) {
+            alert.classList.add('visible');
+            document.getElementById('alert-saldo-dif').textContent = fmt(totalFac - l.asignado);
+        } else {
+            alert.classList.remove('visible');
+        }
+    }
+
+    function quitarDoc(i) {
+        if (editingDocIndex === i) limpiarDoc();
+        else if (editingDocIndex !== null && i < editingDocIndex) editingDocIndex--;
+        liquidaciones.find(x => x.id === currentLiqId).docs.splice(i, 1);
+        renderDocs();
+    }
+
+    function enviarAAutorizarActual() {
+        cambiarEstado(currentLiqId, 'send');
+        volverAListado();
+    }
+
+    function abrirContabilizar(id) {
+        contabId = id;
+        const l = liquidaciones.find(x => x.id === id);
+        const total = l.docs.reduce((s, d) => s + d.total, 0);
+        const iva = l.docs.reduce((s, d) => s + d.iva, 0);
+        document.getElementById('body-contabilizar').innerHTML = `<table>
+            <thead><tr><th>Cuenta Contable</th><th class="text-right">Debe</th><th class="text-right">Haber</th></tr></thead>
+            <tbody>
+                <tr><td>5102.01.00 - Gastos Operativos</td><td class="text-right">${fmt(total - iva)}</td><td class="text-right">Q 0.00</td></tr>
+                <tr><td>1104.01.01 - IVA Crédito</td><td class="text-right">${fmt(iva)}</td><td class="text-right">Q 0.00</td></tr>
+                <tr><td>1101.02.01 - ${l.caja}</td><td class="text-right">Q 0.00</td><td class="text-right">${fmt(total)}</td></tr>
+            </tbody>
+        </table>`;
+        openModal('modal-contabilizar');
+    }
+
+    function confirmarContabilizar() {
+        cambiarEstado(contabId, 'contabilizada');
+        closeModal('modal-contabilizar');
+    }
+
+    function cerrarCaja(id) {
+        cambiarEstado(id, 'cerrada');
+    }
+
+    function guardarCarga() {
+        reportesMov.unshift({
+            fecha: '2026-11-17', op: 'Cargas de Caja Chica',
+            ref: document.getElementById('carga-caja').value,
+            doc: document.getElementById('carga-ref').value || 'CHQ',
+            monto: parseFloat(document.getElementById('carga-monto').value) || 0
+        });
+        renderReportes();
+        closeModal('modal-carga-fondo');
+        toast('Carga registrada');
+    }
+
+    function guardarDevolucion() {
+        reportesMov.unshift({
+            fecha: '2026-11-17', op: 'Emisión de Cheques de Devolución',
+            ref: document.getElementById('dev-liq').value,
+            doc: document.getElementById('dev-ref').value || 'CHQ',
+            monto: parseFloat(document.getElementById('dev-monto').value) || 0
+        });
+        renderReportes();
+        closeModal('modal-cheque-devolucion');
+        toast('Cheque de devolución emitido');
+    }
+
+    function imprimirLiquidacion(id) {
+        const l = liquidaciones.find(x => x.id === id);
+        const total = l.docs.reduce((s, d) => s + d.total, 0);
+        document.getElementById('body-print').innerHTML = `
+            <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--card-border); padding-bottom:10px;">
+                <div><strong>${l.empresa}</strong><br><small>${l.tipo} · ${l.id}</small></div>
+                <div style="text-align:right; font-size:12px;">${l.caja}<br>Responsable: ${l.responsable}</div>
+            </div>
+            <table>
+                <thead><tr><th>Fecha</th><th>Documento</th><th>NIT</th><th>Proveedor</th><th>Descripción</th><th class="text-right">Total</th></tr></thead>
+                <tbody>${l.docs.map(d => `<tr><td>${d.fecha}</td><td>${d.serie}-${d.numero}</td><td>${d.nit}</td><td>${d.proveedor}</td><td>${d.desc}</td><td class="text-right">${fmt(d.total)}</td></tr>`).join('')}</tbody>
+            </table>
+            <div style="text-align:right; font-weight:700; margin-top:8px;">Total: ${fmt(total)}</div>
+        `;
+        openModal('modal-print');
+    }
+
+    function descargarPlantilla() {
+        const csv = "Fecha,Tipo,Serie,Numero,NIT,Proveedor,Descripcion,MontoTotal\n2026-11-17,Factura,A1,1001,1234567-8,Proveedor,Gasto,100.00";
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+        a.download = 'plantilla_facturas.csv';
+        a.click();
+    }
+
+    function subirFacturasMock() {
+        const l = liquidaciones.find(x => x.id === currentLiqId);
+        if (!l || l.estado !== 'save') return;
+        l.docs.push({ fecha: '2026-11-16', tipo: 'Factura', serie: 'M1', numero: '5501', nit: '789456-1', proveedor: 'Supermercados La Torre', desc: 'Insumos', iva: 24.00, total: 224.00 });
+        renderDocs();
+        toast('Facturas cargadas');
+    }
+
+    function renderFondos() {
+        document.getElementById('tbody-fondos').innerHTML = fondos.map(f => `<tr>
+            <td><strong>${f.codigo}</strong></td><td>${f.nombre}</td><td>${f.empresa}</td><td>${f.responsable}</td>
+            <td>${f.cuenta}</td><td class="text-right">${fmt(f.monto)}</td>
+            <td class="text-center"><span class="badge badge-ok">Activo</span></td>
+        </tr>`).join('');
+    }
+
+    function guardarFondo() {
+        fondos.push({
+            codigo: document.getElementById('f-cod').value,
+            nombre: document.getElementById('f-nom').value,
+            empresa: '14=> HOMELAND, SOCIEDAD ANONIMA',
+            responsable: document.getElementById('f-resp').value,
+            cuenta: document.getElementById('f-cta').value,
+            monto: parseFloat(document.getElementById('f-monto').value) || 0,
+            activo: true
+        });
+        renderFondos();
+        closeModal('modal-nuevo-fondo');
+    }
+
+    function renderReportes() {
+        document.getElementById('tbody-reportes').innerHTML = reportesMov.map(r => `<tr>
+            <td>${r.fecha}</td><td>${r.op}</td><td>${r.ref}</td><td>${r.doc}</td><td class="text-right">${fmt(r.monto)}</td>
+        </tr>`).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        renderLiquidaciones();
+        renderFondos();
+        renderReportes();
+        const hash = window.location.hash.replace('#', '');
+        if (hash && document.getElementById(hash)) {
+            const links = { 'view-operaciones': 'link-operaciones', 'view-administracion': 'link-administracion', 'view-reportes': 'link-reportes' };
+            showView(hash, document.getElementById(links[hash]));
+        }
+    });
+</script>
+<script src="sidebar.js"></script>
+</body>
+</html>
